@@ -1,6 +1,6 @@
 /* Load the dataset and formatting variables
   Ref: https://www.d3indepth.com/requests/ */
-d3.csv("data/cleaned_data_extended.csv", (d) => {
+d3.csv("data/cleaned_data_extended.csv", d => {
   return {
     Year: +d.Year,
     Country: d.Country,
@@ -15,20 +15,67 @@ d3.csv("data/cleaned_data_extended.csv", (d) => {
     "Recovery - recycling": +d["Recovery - recycling"],
     "Recovery - backfilling": +d["Recovery - backfilling"],
   };
-}).then((data) => {
-  //Total plastic waste treated grouping by country
-  const Total_Plastic_waste_treated = d3
+}).then(data => {
+  //Percentage plastic waste treated grouped by country only
+  const Percentage_Plastic_waste_treated = d3
+    .rollups(
+      data,
+      (v) => {
+        return {
+          values: {
+            Total_gen: d3.sum(v, (x) => x.Plastic_waste_generated),
+            Total_waste: d3.sum(v, (x) => x.Plastic_waste_treated),
+          },
+        };
+      },
+      (d) => d.Country
+    )
+    .map(([k, v]) => ({
+      Country: k,
+      Plastic_waste_generated: v.values.Total_gen,
+      Plastic_waste_treated: v.values.Total_waste,
+    }));
+
+  //Sort data
+  Percentage_Plastic_waste_treated.sort(function (b, a) {
+    return a.Plastic_waste_generated - b.Plastic_waste_generated;
+  });
+
+  //Total plastic waste treated grouping by country and year
+  const Total_Plastic_waste_treated_y = d3
     .rollups(
       data,
       (xs) => d3.sum(xs, (x) => x.Plastic_waste_treated),
-      (d) => d.Country
+      (d) => d.Country,
+      (d) => d.Year
     )
     .map(([k, v]) => ({ Country: k, Plastic_waste_treated: v }));
 
-  //printing data and some values to test
-  console.log(data);
+  //Total plastic waste generated grouping by country and year
+  const Total_Plastic_waste_generated_y = d3
+    .rollups(
+      data,
+      (xs) => d3.sum(xs, (x) => x.Plastic_waste_generated),
+      (d) => d.Country,
+      (d) => d.Year
+    )
+    .map(([k, v]) => ({ Country: k, Plastic_waste_generated: v }));
 
-  console.log(Total_Plastic_waste_treated);
+  //Total plastic waste generated grouped by country only
+  const Total_Plastic_waste_generated = d3
+    .rollups(
+      data,
+      (xs) => d3.sum(xs, (x) => x.Plastic_waste_generated),
+      (d) => d.Country
+    )
+    .map(([k, v]) => ({ Country: k, Plastic_waste_generated: v }));
+
+  console.log(Total_Plastic_waste_generated);
+
+  //printing data and some values to test
+  console.log(Total_Plastic_waste_generated);
+
+  console.log(Percentage_Plastic_waste_treated);
 
   console.log(d3.max(data, (d) => d["Disposal - Total"]));
 
@@ -39,5 +86,158 @@ d3.csv("data/cleaned_data_extended.csv", (d) => {
   console.log(d3.median(data, (d) => d.Plastic_waste_generated));
 
   //Mean of total plastic waste treated
-  console.log(d3.mean(Total_Plastic_waste_treated, (d) => d.Plastic_waste_treated));
+  console.log(
+    d3.mean(Total_Plastic_waste_generated, (d) => d.Plastic_waste_treated)
+  );
+
+  createGroupedBarChart(Percentage_Plastic_waste_treated);
+
 });
+
+const createGroupedBarChart = (data) => {
+  const width = 900,
+    height = 500;
+  const margin = { top: 30, right: 30, bottom: 80, left: 60 };
+
+  console.log(data);
+
+  /* Create the SVG container */
+  //console.log(d3.select("#bar")) we select an element to manipulate
+  const svg = d3
+    .select("#bar")
+    .append("svg")
+    .attr("viewBox", [0, 0, width, height]);
+
+  //Scale quantitative and nominal
+  xScale = d3
+    .scaleBand(
+      data.map((d) => d.Country),
+      [margin.left, width - margin.right]
+    )
+    .padding(0.2);
+
+  yScale = d3.scaleLinear(
+    [0, d3.max(data, (d) => d.Plastic_waste_generated)],
+    [height - margin.bottom, margin.top]
+  );
+  console.log(yScale(0));
+
+  /* Working with Color: https://observablehq.com/@d3/working-with-color 
+    d3-scale-chromatic: https://github.com/d3/d3-scale-chromatic */
+  const sub = data.map(
+    ({ Plastic_waste_generated, Plastic_waste_treated }) => ({
+      Plastic_waste_generated,
+      Plastic_waste_treated,
+    })
+  );
+  const subgroups = Object.keys(sub[0]);
+
+  //console.log(subgroups);
+
+  const color = d3.scaleOrdinal().domain(subgroups).range(d3.schemeTableau10);
+
+  //Another scale for subgroup (categories) position
+  const xSubgroup = d3
+    .scaleBand()
+    .domain(subgroups)
+    .range([0, xScale.bandwidth()])
+    .padding([0.05]);
+
+  /* Create the bar elements and append to the SVG group
+    https://d3-graph-gallery.com/graph/barplot_grouped_basicWide.html */
+  const bar = svg
+    .append("g")
+    .selectAll("g")
+    .data(data)
+    .join("g")
+    .attr("transform", (d) => `translate(${xScale(d.Country)}, 0)`)
+    .selectAll("rect")
+    .data(function (d) {
+      return subgroups.map(function (key) {
+        return { key: key, value: d[key] };
+      });
+    })
+    .join("rect")
+    .attr("x", (d) => xSubgroup(d.key))
+    .attr("y", (d) => yScale(d.value))
+    .attr("width", xSubgroup.bandwidth())
+    .attr("height", (d) => yScale(0) - yScale(d.value))
+    .attr("fill", (d) => color(d.key));
+
+  /* Add the tooltip when hover on the bar */
+  bar.append("title").text((d) => d.key + ": " + d.value);
+
+  /* Create the x and y axes and append them to the chart
+    Ref: https://www.d3indepth.com/axes/ and https://github.com/d3/d3-axis */
+  const xAxis = d3.axisBottom(xScale);
+
+  const xGroup = svg
+    .append("g")
+    .attr("transform", `translate(0, ${height - margin.bottom})`)
+    .call(xAxis);
+
+  xGroup
+    .selectAll("text")
+    .style("text-anchor", "end")
+    .attr("dx", "-.8em")
+    .attr("dy", ".15em")
+    .attr("transform", "rotate(-65)");
+
+  const yAxis = d3.axisLeft(yScale);
+
+  svg.append("g").attr("transform", `translate(${margin.left}, 0)`).call(yAxis);
+
+  /*Legend
+  Ref: https://observablehq.com/@itrew/legend
+  */
+  // Legend as a group
+  const legend = svg
+    .append("g")
+    // Apply a translation to the entire group
+    .attr("transform", `translate(650, ${margin.top})`);
+
+  const size = 15;
+  const border_padding = 12;
+  const item_padding = 5;
+  const text_offset = 2;
+
+  // Border
+  legend
+    .append("rect")
+    .attr("width", 220)
+    .attr("height", 60)
+    .style("fill", "none")
+    .style("stroke-width", 1)
+    .style("stroke", "black");
+
+  // Boxes
+  legend
+    .selectAll("boxes")
+    .data(subgroups)
+    .enter()
+    .append("rect")
+    .attr("x", border_padding)
+    .attr("y", (d, i) => border_padding + i * (size + item_padding))
+    .attr("width", size)
+    .attr("height", size)
+    .style("fill", (d) => color(d));
+
+  // Labels
+  legend
+    .selectAll("labels")
+    .data(subgroups)
+    .enter()
+    .append("text")
+    .attr("x", border_padding + size + item_padding)
+    .attr(
+      "y",
+      (d, i) =>
+        border_padding + i * (size + item_padding) + size / 2 + text_offset
+    )
+    // .style("fill", (d) => color(d))
+    .text((d) => d)
+    .attr("text-anchor", "left")
+    .style("alignment-baseline", "middle")
+    .style("font-family", "sans-serif");
+
+}
