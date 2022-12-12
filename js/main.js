@@ -1,19 +1,6 @@
-/* Toggle between showing and hiding the navigation menu links when the user clicks on the hamburger menu / bar icon */
-function myFunction() {
-  var x = document.getElementById("myLinks");
-  if (x.style.display === "block") {
-    x.style.display = "none";
-  } else {
-    x.style.display = "block";
-  }
-}
-
-const parseDate = d3.utcParse("%Y");
-const parseTime = d3.timeFormat("%Y");
-
 /* Load the dataset and formatting variables
   Ref: https://www.d3indepth.com/requests/ */
-d3.csv("/data/cleaned_data_extended.csv", (d) => {
+d3.csv("data/cleaned_data_extended.csv", (d) => {
   return {
     Year: +d.Year,
     Country: d.Country,
@@ -327,3 +314,16 @@ const createLineChart = (data) => {
 
   svg.append("g").attr("transform", `translate(${margins.left},0)`).call(yAxis);
 };
+
+/* Toggle between showing and hiding the navigation menu links when the user clicks on the hamburger menu / bar icon */
+function myFunction() {
+  var x = document.getElementById("myLinks");
+  if (x.style.display === "block") {
+    x.style.display = "none";
+  } else {
+    x.style.display = "block";
+  }
+}
+
+const parseDate = d3.utcParse("%Y");
+const parseTime = d3.timeFormat("%Y");
