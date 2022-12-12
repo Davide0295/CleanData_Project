@@ -1,6 +1,19 @@
+/* Toggle between showing and hiding the navigation menu links when the user clicks on the hamburger menu / bar icon */
+function myFunction() {
+  var x = document.getElementById("myLinks");
+  if (x.style.display === "block") {
+    x.style.display = "none";
+  } else {
+    x.style.display = "block";
+  }
+}
+
+const parseDate = d3.utcParse("%Y");
+const parseTime = d3.timeFormat("%Y");
+
 /* Load the dataset and formatting variables
   Ref: https://www.d3indepth.com/requests/ */
-d3.csv("data/cleaned_data_extended.csv", d => {
+d3.csv("data/cleaned_data_extended.csv", (d) => {
   return {
     Year: +d.Year,
     Country: d.Country,
@@ -14,8 +27,9 @@ d3.csv("data/cleaned_data_extended.csv", d => {
     "Recovery - energy recovery": +d["Recovery - energy recovery"],
     "Recovery - recycling": +d["Recovery - recycling"],
     "Recovery - backfilling": +d["Recovery - backfilling"],
+    Date: parseTime(parseDate(+d.Year)),
   };
-}).then(data => {
+}).then((data) => {
   //Percentage plastic waste treated grouped by country only
   const Percentage_Plastic_waste_treated = d3
     .rollups(
@@ -42,56 +56,48 @@ d3.csv("data/cleaned_data_extended.csv", d => {
   });
 
   //Total plastic waste treated grouping by country and year
-  const Total_Plastic_waste_treated_y = d3
+  const Plastic_waste_treatedVsgenerated = d3
     .rollups(
       data,
-      (xs) => d3.sum(xs, (x) => x.Plastic_waste_treated),
-      (d) => d.Country,
-      (d) => d.Year
+      (v) => {
+        return {
+          values: {
+            Total_gen: d3.sum(v, (x) => x.Plastic_waste_generated),
+            Total_waste: d3.sum(v, (x) => x.Plastic_waste_treated),
+            Percentage_treated:
+              (d3.sum(v, (x) => x.Plastic_waste_treated) /
+                d3.sum(v, (x) => x.Plastic_waste_generated)) *
+              100,
+            Percentage_untreated:
+              ((d3.sum(v, (x) => x.Plastic_waste_generated) -
+                d3.sum(v, (x) => x.Plastic_waste_treated)) /
+                d3.sum(v, (x) => x.Plastic_waste_generated)) *
+              100,
+          },
+        };
+      },
+      (d) => d.Date
     )
-    .map(([k, v]) => ({ Country: k, Plastic_waste_treated: v }));
-
-  //Total plastic waste generated grouping by country and year
-  const Total_Plastic_waste_generated_y = d3
-    .rollups(
-      data,
-      (xs) => d3.sum(xs, (x) => x.Plastic_waste_generated),
-      (d) => d.Country,
-      (d) => d.Year
-    )
-    .map(([k, v]) => ({ Country: k, Plastic_waste_generated: v }));
-
-  //Total plastic waste generated grouped by country only
-  const Total_Plastic_waste_generated = d3
-    .rollups(
-      data,
-      (xs) => d3.sum(xs, (x) => x.Plastic_waste_generated),
-      (d) => d.Country
-    )
-    .map(([k, v]) => ({ Country: k, Plastic_waste_generated: v }));
-
-  console.log(Total_Plastic_waste_generated);
+    .map(([k, v]) => ({
+      Year: k,
+      Plastic_waste_generated: v.values.Total_gen,
+      Plastic_waste_treated: v.values.Total_waste,
+      Percentage_treated: v.values.Percentage_treated,
+      Percentage_untreated: v.values.Percentage_untreated,
+    }));
 
   //printing data and some values to test
-  console.log(Total_Plastic_waste_generated);
-
   console.log(Percentage_Plastic_waste_treated);
 
-  console.log(d3.max(data, (d) => d["Disposal - Total"]));
-
-  console.log(d3.max(data, (d) => d["Recovery - backfilling"]));
+  console.log(Plastic_waste_treatedVsgenerated);
 
   // Get the mean and median of plastic waste generated
   console.log(d3.mean(data, (d) => d.Plastic_waste_treated));
   console.log(d3.median(data, (d) => d.Plastic_waste_generated));
 
-  //Mean of total plastic waste treated
-  console.log(
-    d3.mean(Total_Plastic_waste_generated, (d) => d.Plastic_waste_treated)
-  );
-
   createGroupedBarChart(Percentage_Plastic_waste_treated);
 
+  createLineChart(Plastic_waste_treatedVsgenerated);
 });
 
 const createGroupedBarChart = (data) => {
@@ -120,7 +126,6 @@ const createGroupedBarChart = (data) => {
     [0, d3.max(data, (d) => d.Plastic_waste_generated)],
     [height - margin.bottom, margin.top]
   );
-  console.log(yScale(0));
 
   /* Working with Color: https://observablehq.com/@d3/working-with-color 
     d3-scale-chromatic: https://github.com/d3/d3-scale-chromatic */
@@ -239,5 +244,86 @@ const createGroupedBarChart = (data) => {
     .attr("text-anchor", "left")
     .style("alignment-baseline", "middle")
     .style("font-family", "sans-serif");
+};
 
-}
+const createLineChart = (data) => {
+  /* Set the dimensions and margins of the graph */
+  const width = 900,
+    height = 400;
+  const margins = { top: 20, right: 100, bottom: 80, left: 60 };
+
+  /* Create the SVG container */
+  const svg = d3
+    .select("#line")
+    .append("svg")
+    .attr("viewBox", [0, 0, width, height]);
+
+  console.log(data);
+
+  /* Define x-axis, y-axis, and color scales */
+  const yScale = d3
+    .scaleLinear()
+    .domain([0, 100])
+    .range([height - margins.bottom, margins.top]);
+
+  const xScale = d3
+    .scaleLinear()
+    .domain(d3.extent(data, (d) => d.Year))
+    .range([margins.left, width - margins.right]);
+
+  /* Construct a line generator
+    Ref: https://observablehq.com/@d3/line-chart and https://github.com/d3/d3-shape */
+  const line = d3
+    .line()
+    .curve(d3.curveLinear)
+    .x((d) => xScale(d.Year))
+    .y((d) => yScale(d.Percentage_treated));
+
+  console.log(data);
+
+  const sub = data.map(
+    ({ Plastic_waste_generated, Plastic_waste_treated }) => ({
+      Plastic_waste_generated,
+      Plastic_waste_treated,
+    })
+  );
+  console.log(sub);
+
+  const subgroups = Object.keys(sub[0]);
+
+  const color = d3.scaleOrdinal().domain(subgroups).range(d3.schemeTableau10);
+
+  //* Create line paths for each country */
+  const path = svg
+    .append("path")
+    .datum(data)
+    .attr("fill", "none")
+    .attr("stroke", "steelblue")
+    .attr("stroke-width", 1.5)
+    .attr(
+      "d",
+      d3
+        .line()
+        .x(function (d) {
+          return xScale(d.Year);
+        })
+        .y(function (d) {
+          return yScale(d.Percentage_untreated);
+        })
+    );
+
+  /* [NEW] Add the tooltip when hover on the line */
+  //path.append("title").text(([i, d]) => i);
+
+  /* [NEW] Create the x and y axes and append them to the chart */
+  const xAxis = d3.axisBottom(xScale);
+
+  svg
+    .append("g")
+    .attr("transform", `translate(0,${height - margins.bottom})`)
+    .call(xAxis);
+
+  const yAxis = d3.axisLeft(yScale);
+
+  svg.append("g").attr("transform", `translate(${margins.left},0)`).call(yAxis);
+};

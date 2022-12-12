@@ -9,6 +9,24 @@
 </head>
 
 <body>
+    <!-- Load an icon library to show a hamburger menu (bars) on small screens -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    
+    <!-- Top Navigation Menu -->
+    <div class="topnav">
+        <a href="index.html" class="active">CleanData Project</a>
+        <!-- Navigation links (hidden by default) -->
+        <div id="myLinks">
+            <a href="about.html">About Us</a>
+        </div>
+        <!-- "Hamburger menu" / "Bar icon" to toggle the navigation links -->
+        <a href="javascript:void(0);" class="icon" onclick="myFunction()">
+            <i class="fa fa-bars"></i>
+        </a>
+    </div>
+    <h1>Plastic Waste in European countries</h1>
+    How is plastic treated in different countries of the EU, how is the trend evolving over the last years and what is the
+    relationship between plastic waste treatment and plastic waste generation?
     <div id="bar" class="responsive-svg-container"></div>
     <div id="line" class="responsive-svg-container"></div>
 
