@@ -1,6 +1,6 @@
 /* Load the dataset and formatting variables
   Ref: https://www.d3indepth.com/requests/ */
-d3.csv("data/cleaned_data_extended.csv", (d) => {
+d3.csv("../data/cleaned_data_extended.csv", (d) => {
   return {
     Year: +d.Year,
     Country: d.Country,
