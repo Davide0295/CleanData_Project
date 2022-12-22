@@ -26,12 +26,57 @@
         </a>
     </div>
     <h1>Plastic Waste in European countries</h1>
-    How is plastic treated in different countries of the EU, how is the trend evolving over the last years and what is the
-    relationship between plastic waste treatment and plastic waste generation?
-    <div id="bar" class="responsive-svg-container"></div>
-    <div id="line" class="responsive-svg-container"></div>
+    The aim of this analysis would be to provide a comparative study of plastic waste in European different countries, to find how the how much plastic waste each country generates and treats and which methodologies are used to treat plasti waste.
+    After considering different research questions, we finally decided to focus on answering the following: <br> 
+    <br>
+    <i>"How is plastic treated in different European countries, how is the trend evolving over the last years and what is the relationship between plastic waste treatment and plastic waste generation?"</i>
+    <br>
+    <br> The data used for this project has been collected from Eurostat:
+    <ul>
+        <li> <a href="https://ec.europa.eu/eurostat/databrowser/view/ENV_WASTRT__custom_3487128/default/table?lang=en">Eurostat - Plastic management operations in EU countries, over the years</a></li>
+        <li> <a href="https://ec.europa.eu/eurostat/databrowser/view/ENV_WASGEN/default/table?lang=en&category=env.env_was.env_wasgt">Eurostat - Plastic waste generation in EU countries, over the years</a></li>
+    </ul>
+    <div id="plasticWaste">
+        <h2> Plastic waste generated Vs Plastic waste treated </h2> 
+        Here we present the relationship between plastic waste generated and plastic waste treated in different European countries.
+        a <b>Grouped bar chart</b> shows the total amount of plastic waste generated against the total amount of plastic waste treated between <b>2010-2020</b>.
+        In addition, a <b>Line chart</b> shows how the amount of plastic waste generated and the amount of plastic waste treated evolved across the years.
+        The aim of these two visualisations is to raise awarness on how each country actually deal with plastic waste. For instance, some countries do not treat their plastic
+        waste but they export it in other countries, which in contrast treat more plastic waste then the one they produce.
+        <div class="info">
+            &#9432;
+            <span class="infotext">Hover on a bar to display its value</span>
+          </div>
+          <div id="bar" class="responsive-svg-container"></div>
+          <div id="line" class="responsive-svg-container"></div> 
+    </div>
+
+    </div>
+
+    <div id="plasticOp">
+        <h2> Plastic waste management operations </h2> 
+        Here a <b>Donut chart</b> displays the distribution of the different plastic management operations in a selected country.
+        The user can select the country they want to display via the dropdown menu.
+        <div id="country-select-container">
+            <br>
+            <label for="country-select">Select a country:</label>
+            <select id="country-select"></select>
+        </div>
+       
+        <div id="donut" class="responsive-svg-container">
+
+                
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        <p>© 2022 CleanData</p>
+    </footer>
 
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
     <script src="js/main.js"></script>
     <script src="js/functions.js"></script>
 </body>

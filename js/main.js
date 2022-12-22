@@ -40,8 +40,11 @@ d3.csv("./data/cleaned_data_extended.csv", (d) => {
       Plastic_waste_treated: v.values.Total_waste,
     }));
 
+  //Filter for total plastic waste generated > 150.000, explanation in Analysis report assignement
+  const Plastic_waste = Percentage_Plastic_waste_treated.filter(d => d.Plastic_waste_generated > 150000);
+
   //Sort data
-  Percentage_Plastic_waste_treated.sort(function (b, a) {
+  Plastic_waste.sort(function (b, a) {
     return a.Plastic_waste_generated - b.Plastic_waste_generated;
   });
 
@@ -76,24 +79,74 @@ d3.csv("./data/cleaned_data_extended.csv", (d) => {
       Percentage_untreated: v.values.Percentage_untreated,
     }));
 
+  console.log(data)
   //printing data and some values to test
-  console.log(Percentage_Plastic_waste_treated);
+  console.log(Plastic_waste);
 
   console.log(Plastic_waste_treatedVsgenerated);
 
-  // Get the mean and median of plastic waste generated
-  console.log(d3.mean(data, (d) => d.Plastic_waste_treated));
-  console.log(d3.median(data, (d) => d.Plastic_waste_generated));
+  //Manipulate data for management operations
+  const newData = data.map((d) => ({
+    Country: d.Country,
+    "Disposal - landfill and other": d["Disposal - landfill and other"],
+    "Disposal - incineration": d["Disposal - incineration"],
+    "Recovery - energy recovery": d["Recovery - energy recovery"],
+    "Recovery - recycling": d["Recovery - recycling"],
+    "Recovery - backfilling": d["Recovery - backfilling"],
+  }));
 
-  createGroupedBarChart(Percentage_Plastic_waste_treated);
+  const groupedData = newData.reduce((acc, curr) => {
+    const { Country, ...values } = curr;
+    if (!acc[Country]) {
+      acc[Country] = { Country, ...values };
+    } else {
+      Object.keys(values).forEach((key) => {
+        acc[Country][key] += values[key];
+      });
+    }
+    return acc;
+  }, {});
+
+  const dataArray = Object.entries(groupedData).map(([_, values]) => ({
+    Country: values.Country,
+    ...values,
+  }));
+
+  const PercentageManagementOp = dataArray.map((d) => {
+    const total = Object.values(d)
+      .filter((v) => typeof v === "number")
+      .reduce((acc, curr) => acc + curr, 0);
+    return {
+      Country: d.Country,
+      ...Object.keys(d).reduce((acc, key) => {
+        if (key !== "Country") {
+          acc[key] = (d[key] / total) * 100;
+        }
+        return acc;
+      }, {}),
+    };
+  });
+
+   PercentageManagementOp.sort((a, b) =>
+     a.Country.localeCompare(b.Country)
+   )
+
+  console.log(PercentageManagementOp)
+
+  createGroupedBarChart(Plastic_waste);
 
   createLineChart(Plastic_waste_treatedVsgenerated);
+
+  createDonutChart(PercentageManagementOp);
+
 });
 
 const createGroupedBarChart = (data) => {
+
   const width = 900,
     height = 500;
   const margin = { top: 30, right: 30, bottom: 80, left: 60 };
+
 
   console.log(data);
 
@@ -116,6 +169,41 @@ const createGroupedBarChart = (data) => {
     [0, d3.max(data, (d) => d.Plastic_waste_generated)],
     [height - margin.bottom, margin.top]
   );
+
+  /* Add the tooltip when hover on the bar */
+  //bar.append("title").text((d) => d.key + ": " + d.value);
+  const tooltip = d3
+    .select("#bar")
+    .append("div")
+    .style("opacity", 0)
+    .attr("class", "tooltip")
+    .style("border", "solid")
+    .style("border-width", "2px")
+    .style("border-radius", "5px")
+    .style("padding", "5px");
+
+  // Three function that change the tooltip when user hover / move / leave a cell
+  const mouseover = function (event, d) {
+    tooltip
+      .style("background-color", "black")
+      .style("color", "white")
+      .style("opacity", "80%");
+    d3.select(this).style("stroke", "black").style("opacity", 1);
+  };
+  const mousemove = function (event, d) {
+     if (event && d.value) { 
+    const x = event.pageX + 10; 
+    const y = event.pageY + 10; 
+    tooltip
+      .html(d.key + ": " + d.value) 
+      .style("left", x + "px")
+      .style("top", y + "px");
+     }
+  };
+  const mouseleave = function (event, d) {
+    tooltip.style("opacity", 0);
+    d3.select(this).style("stroke", "none");
+  };
 
   /* Working with Color: https://observablehq.com/@d3/working-with-color 
     d3-scale-chromatic: https://github.com/d3/d3-scale-chromatic */
@@ -145,6 +233,7 @@ const createGroupedBarChart = (data) => {
     .selectAll("g")
     .data(data)
     .join("g")
+    .attr("class", "bars")
     .attr("transform", (d) => `translate(${xScale(d.Country)}, 0)`)
     .selectAll("rect")
     .data(function (d) {
@@ -157,10 +246,10 @@ const createGroupedBarChart = (data) => {
     .attr("y", (d) => yScale(d.value))
     .attr("width", xSubgroup.bandwidth())
     .attr("height", (d) => yScale(0) - yScale(d.value))
-    .attr("fill", (d) => color(d.key));
-
-  /* Add the tooltip when hover on the bar */
-  bar.append("title").text((d) => d.key + ": " + d.value);
+    .attr("fill", (d) => color(d.key))
+    .on("mouseover", mouseover)
+    .on("mousemove", mousemove)
+    .on("mouseleave", mouseleave);
 
   /* Create the x and y axes and append them to the chart
     Ref: https://www.d3indepth.com/axes/ and https://github.com/d3/d3-axis */
@@ -168,6 +257,7 @@ const createGroupedBarChart = (data) => {
 
   const xGroup = svg
     .append("g")
+    .attr("class", "x-axis")
     .attr("transform", `translate(0, ${height - margin.bottom})`)
     .call(xAxis);
 
@@ -236,3 +326,197 @@ const createGroupedBarChart = (data) => {
     .style("font-family", "sans-serif");
 };
 
+const createLineChart = (data) => {
+  /* Set the dimensions and margins of the graph */
+  const width = 900,
+    height = 400;
+  const margins = { top: 20, right: 100, bottom: 80, left: 60 };
+
+  /* Create the SVG container */
+  const svg = d3
+    .select("#line")
+    .append("svg")
+    .attr("viewBox", [0, 0, width, height]);
+
+  console.log(data);
+
+  /* Define x-axis, y-axis, and color scales */
+  const yScale = d3
+    .scaleLinear()
+    .domain([0, d3.max(data, d => d.Plastic_waste_generated)])
+    .range([height - margins.bottom, margins.top]);
+
+  const yScale2 = d3
+    .scaleLinear()
+    .domain([0, d3.max(data, d => d.Plastic_waste_treated)])
+    .range([height - margins.bottom, margins.top]);
+
+  const xScale = d3
+    .scaleTime()
+    .domain(d3.extent(data, (d) => parseDate(+d.Year)))
+    .range([margins.left, width - margins.right]);
+
+    const tooltip = d3
+    .select("#line")
+    .append("div")
+    .style("opacity", 0)
+    .attr("class", "tooltip")
+    .style("border", "solid")
+    .style("border-width", "2px")
+    .style("border-radius", "5px")
+    .style("padding", "5px")
+
+  // Three function that change the tooltip when user hover / move / leave a cell
+  const mouseover = function (event, d) {
+    tooltip
+    .style("background-color", "black")
+    .style("color","white")
+    .style("opacity", "70%")
+  d3.select(this)
+    .style("stroke", "#1F77B4FF")
+    .style("opacity", 1)
+    .style('stroke-width', '4px')
+  };
+  const mousemove = function (event, d) {
+    tooltip
+    .html("Plastic waste generated")
+    .style("top", (event.pageY)+"px")
+    .style("left",(event.pageX)+"px");   
+  };
+  const mouseleave = function (event, d) {
+    tooltip.style("opacity", 0)
+    d3.select(this)
+      .style("stroke", "#1F77B4FF")
+      .style('stroke-width', '2px')
+  };
+
+  const mouseover2 = function (event, d) {
+    tooltip
+    .style("background-color", "black")
+    .style("color","white")
+    .style("opacity", "70%")
+  d3.select(this)
+    .style("stroke", "#FF7F0EFF")
+    .style("opacity", 1)
+    .style('stroke-width', '4px')
+  };
+  const mousemove2 = function (event, d) {
+    tooltip
+    .html("Plastic waste treated")
+    .style("top", (event.pageY)+"px")
+    .style("left",(event.pageX)+"px");   
+  };
+  const mouseleave2 = function (event, d) {
+    tooltip.style("opacity", 0)
+    d3.select(this)
+      .style("stroke", "#FF7F0EFF")
+      .style('stroke-width', '2px')
+  }
+
+  //* Create line paths for each country */
+  const path = svg
+    .append("path")
+    .datum(data)
+    .attr("fill", "none")
+    .attr("id","line1")
+    .attr("stroke", "#1F77B4FF")
+    .attr("stroke-width", 1.5)
+    .attr(
+      "d",
+      d3
+        .line()
+        .x(function (d) {
+          return xScale(parseDate(+d.Year));
+        })
+        .y(function (d) {
+          return yScale(d.Plastic_waste_generated);
+        })
+    )
+    .on("mouseover", mouseover)
+    .on("mousemove", mousemove)
+    .on("mouseleave", mouseleave);
+
+    const path2 = svg
+      .append("path")
+      .datum(data)
+      .attr("fill", "none")
+      .attr("id","line2")
+      .attr("stroke", "#FF7F0EFF")
+      .attr("stroke-width", 1.5)
+      .attr(
+        "d",
+        d3
+          .line()
+          .x(function (d) {
+            return xScale(parseDate(+d.Year));
+          })
+          .y(function (d) {
+            return yScale(d.Plastic_waste_treated);
+          })
+      )
+      .on("mouseover", mouseover2)
+      .on("mousemove", mousemove2)
+      .on("mouseleave", mouseleave2);
+  
+  const plasticWasteGenerated = data.map((d) => d.Plastic_waste_generated);
+  const plasticWasteTreated = data.map((d) => d.Plastic_waste_treated);
+
+  const circles = svg
+    .selectAll("circle")
+    .data(plasticWasteGenerated) 
+    .enter()
+    .append("circle")
+    .attr("cx", (d, i) => xScale(parseDate(+data[i].Year))) 
+    .attr("cy", (d) => yScale(d)) 
+    .attr("r", 5)
+    .style("fill", "#1F77B4FF")
+    .style("opacity", 0.7);
+
+  const text = svg
+    .selectAll("text")
+    .data(plasticWasteGenerated) 
+    .enter()
+    .append("text")
+    .attr("x", (d, i) => xScale(parseDate(+data[i].Year)) + 5) 
+    .attr("y", (d) => yScale(d) + 15) 
+    .text((d) => d) 
+    .style("font-size", "12px")
+    .style("fill", "black")
+    .style("opacity", 0.7);
+
+  const circles2 = svg
+  .selectAll("circle2")
+  .data(plasticWasteTreated) 
+  .enter()
+  .append("circle")
+  .attr("cx", (d, i) => xScale(parseDate(+data[i].Year))) 
+  .attr("cy", (d) => yScale(d)) 
+  .attr("r", 5)
+  .style("fill", "#FF7F0EFF")
+  .style("opacity", 0.7);
+
+const text2 = svg
+  .selectAll("text2")
+  .data(plasticWasteTreated) 
+  .enter()
+  .append("text")
+  .attr("x", (d, i) => xScale(parseDate(+data[i].Year)) + 5) 
+  .attr("y", (d) => yScale(d) + 15) 
+  .text((d) => d) 
+  .style("font-size", "12px")
+  .style("fill", "black")
+  .style("opacity", 0.7);
+  
+
+  const xAxis = d3.axisBottom(xScale);
+
+  svg
+    .append("g")
+    .attr("transform", `translate(0,${height - margins.bottom})`)
+    .call(xAxis);
+
+  const yAxis = d3.axisLeft(yScale);
+
+  svg.append("g").attr("transform", `translate(${margins.left},0)`).call(yAxis);
+
+};

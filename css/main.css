@@ -1,9 +1,107 @@
+* {
+  font-family: "Roboto";
+}
+
 .responsive-svg-container {
   margin-right: auto;
   margin-left: auto;
   width: 100%;
-  max-width: 800px;
+  max-width: 1000px;
+  margin-top: 2%;
 }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: #efefe9;
+}
+
+h1 {
+  text-align-last: center;
+  border: 6px double rgb(9, 9, 9);
+}
+
+#plasticWaste {
+  margin-top: 2%;
+}
+
+#bar {
+  background-color: white;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+}
+
+#line {
+  background-color: white;
+  padding-top: 3%;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+}
+
+#donut {
+  background-color: white;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+}
+
+#plasticOp{
+  margin-top: 3%;
+}
+
+.tooltip {
+  position: absolute;
+  pointer-events: none; 
+}
+
+.tooltipLine {
+  display: inline;
+  position: fixed;
+}
+
+.country-name {
+  font-size: 16px;
+  fill: #333;
+}
+
+
+.info {
+  position: relative;
+  display: inline-block;
+  margin-left: 1%;
+  border-bottom: 2px dotted black;
+}
+
+.info .infotext {
+  visibility: hidden;
+  width: 120px;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+
+  /* Position the tooltip */
+  position: absolute;
+  z-index: 1;
+}
+
+.info:hover .infotext {
+  visibility: visible;
+}
+
+#line {
+  margin-top: 8%;
+}
+
+footer {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    padding: 5px;
+    margin-top: 20px;
+    background-color: #04AA6D;
+    color: #fff;
+    bottom: 0;
+    width: 100%; 
+}
+
 
 /* Style the navigation menu */
 .topnav {
@@ -123,4 +221,9 @@ html {
       margin-left: -20%;
       display:block;
   }
+  h1 {
+    text-align: center;
+    width: 100%;
+    border: 2px solid black;
+}
 }
