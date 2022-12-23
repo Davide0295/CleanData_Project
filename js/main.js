@@ -520,3 +520,184 @@ const text2 = svg
   svg.append("g").attr("transform", `translate(${margins.left},0)`).call(yAxis);
 
 };
+
+
+const createDonutChart = (data) => {
+  // Set up the donut chart using D3.js
+  const width = 800,
+    height = 400;
+
+  // Set the initial radius value
+  let radius = Math.min(width, height) / 2 - 20;
+
+
+  const color = d3.scaleOrdinal().range(d3.schemeTableau10);
+
+  const pie = d3
+    .pie()
+    .sort(null)
+    .value(function (d) {
+      return d.value;
+    });
+
+  const arc = d3
+    .arc()
+    .outerRadius(radius - 10)
+    .innerRadius(radius - 70);
+
+  const svg = d3
+    .select("#donut")
+    .append("svg")
+    .attr("class", "donut")
+    .attr("width", width)
+    .attr("height", height)
+    .append("g")
+    .attr("transform", "translate(200," + height / 2 + ")");
+
+  // Add a text element to display the name of the selected country
+  const countryNameText = svg
+    .append("text")
+    .attr("class", "countryName")
+    .attr("text-anchor", "middle")
+    .attr("dy", "0em")
+    .attr("font-size", "25px")
+    .text("");
+
+  // Update the donut chart with the data for the selected country
+  function updateDonut(country) {
+    // Find the data for the selected country
+    const dataForCountry = data.find(function (d) {
+      return d.Country == country;
+    });
+
+    const legendRectSize = 18;
+    const legendSpacing = 4;
+    const legendX = 250;
+    const legendY = -180;
+
+    const legendData = Object.entries(dataForCountry)
+      .filter((entry) => entry[0] !== "Country")
+      .map((entry) => ({
+        key: entry[0],
+        value: parseFloat(entry[1]) || 0,
+      }));
+
+    const legend = svg
+      .selectAll(".legend")
+      .data(legendData)
+      .enter()
+      .append("g")
+      .attr("class", "legend")
+      .attr("transform", function (d, i) {
+        return (
+          "translate(" +
+          legendX +
+          "," +
+          (legendY + i * (legendRectSize + legendSpacing)) +
+          ")"
+        );
+      });
+
+    legend
+      .append("rect")
+      .attr("width", legendRectSize)
+      .attr("height", legendRectSize)
+      .style("fill", function (d) {
+        return color(d.key);
+      })
+      .style("stroke", function (d) {
+        return color(d.key);
+      });
+
+    legend
+      .append("text")
+      .attr("x", legendRectSize + legendSpacing)
+      .attr("y", legendRectSize - legendSpacing)
+      .text(function (d) {
+        return d.key;
+      });
+    console.log(Object.entries(dataForCountry));
+
+    // Bind the data to the pie layout and generate the path elements
+    const g = svg.selectAll(".arc").data(
+      pie(
+        Object.entries(dataForCountry)
+          .filter((entry) => entry[0] !== "Country")
+          .map((entry) => ({
+            key: entry[0],
+            value: parseFloat(entry[1]) || 0,
+          }))
+      )
+    );
+    const gEnter = g.enter().append("g").attr("class", "arc");
+
+    gEnter
+      .append("path")
+      .attr("class", "arcs")
+      .style("fill", function (d) {
+        return color(d.data.key);
+      });
+
+    /*
+    gEnter
+      .append("text")
+      .attr("class", "text")
+      .style("text-anchor", "middle")
+      .attr("dy", "0.35em")
+      .text(function (d) {
+        return d3.format(".2f")(d.data.value) + "%";
+      });
+      */
+
+    // Merge the entering and existing elements, and apply the data and style to the merged selection
+    g.merge(gEnter)
+      .select("path")
+      .attr("d", arc)
+      .style("fill", function (d) {
+        return color(d.data.key);
+      });
+    g.merge(gEnter)
+      .select("text")
+      .attr("transform", function (d) {
+        // Position the text along the arc
+        const c = arc.centroid(d),
+          x = c[0],
+          y = c[1],
+          // Calculate the angle of the arc
+          h = Math.sqrt(x * x + y * y);
+        return "translate(" + (x / h) * radius + "," + (y / h) * radius + ")";
+      })
+      .text(function (d) {
+        return d3.format(".2f")(d.data.value) + "%";
+      });
+
+    // Append a text element to the g element and set its text to the name of the country
+    countryNameText.text(country);
+
+    console.log(dataForCountry);
+
+    // Update the text element with the name of the selected country
+    countryNameText.text(country);
+
+    // Remove any excess elements that are not bound to data
+    g.exit().remove();
+  }
+
+  // Set up the dropdown menu
+  const select = d3.select("#country-select").on("change", function () {
+    updateDonut(this.value);
+  });
+
+  // Populate the select element with the names of the countries in the data
+  select
+    .selectAll("option")
+    .data(data)
+    .enter()
+    .append("option")
+    .text(function (d) {
+      return d.Country;
+    });
+
+  // Initialize the donut chart with the data for the first country in the list
+  updateDonut(data[0].Country);
+};
