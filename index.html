@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CleanData_Project</title>
     <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 
 <body>
@@ -46,9 +47,10 @@
         waste but they export it in other countries, which in contrast treat more plastic waste then the one they produce.
         </p>
         <div class="info">
-            &#9432;
+            <i class="fa fa-info-circle" style="font-size:20px;color:grey"></i>
             <span class="infotext">Hover on a bar to display its value</span>
           </div>
+          <div id="container"></div>
           <div id="bar" class="responsive-svg-container"></div>
           <div id="line" class="responsive-svg-container"></div> 
     </div>
@@ -57,13 +59,17 @@
 
     <div id="plasticOp">
         <h2> Plastic waste management operations </h2> 
-        <p>Here a <b>Donut chart</b> displays the distribution of the different plastic management operations in a selected country.
+        <p>Here a <b>Donut chart</b> displays the distribution (in percentage %) of the different plastic management operations in a selected country.
         The user can select the country they want to display via the dropdown menu.
         </p>
         <div id="country-select-container">
             <br>
             <label for="country-select">Select a country:</label>
             <select id="country-select"></select>
+        </div>
+        <div class="info">
+                        <i class="fa fa-info-circle" style="font-size:20px;color:grey"></i>
+                        <span class="infotext">Hover on an arc to display its value</span>
         </div>
        
         <div id="donut" class="responsive-svg-container">

@@ -13,7 +13,7 @@
 html, body {
   margin: 0;
   padding: 0;
-  background-color: lightgrey;
+  background-color: white;
 }
 
 h1, h2 {
@@ -59,6 +59,11 @@ h1 {
   pointer-events: none; 
 }
 
+.tooltipDonut {
+  position: absolute;
+  pointer-events: none; 
+}
+
 .tooltipLine {
   display: inline;
   position: fixed;
@@ -69,11 +74,24 @@ h1 {
   fill: #333;
 }
 
+button {
+  background-color: #04AA6D; 
+  border: none;
+  color: white;
+  padding: 5px 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin-top: 10px;
+  margin-left: 5px;
+  cursor: pointer;
+}
 
 .info {
   position: relative;
   display: inline-block;
-  margin-left: 20px;
+  margin-left: 290px;
   border-bottom: 2px dotted black;
 }
 
@@ -217,7 +235,6 @@ html {
 .button:hover {
   background-color: #555;
 }
-
 
 @media screen and (max-width: 650px) {
   .column {

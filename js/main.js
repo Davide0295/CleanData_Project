@@ -142,11 +142,9 @@ d3.csv("./data/cleaned_data_extended.csv", (d) => {
 });
 
 const createGroupedBarChart = (data) => {
-
   const width = 900,
     height = 500;
   const margin = { top: 30, right: 30, bottom: 80, left: 60 };
-
 
   console.log(data);
 
@@ -191,19 +189,86 @@ const createGroupedBarChart = (data) => {
     d3.select(this).style("stroke", "black").style("opacity", 1);
   };
   const mousemove = function (event, d) {
-     if (event && d.value) { 
-    const x = event.pageX + 10; 
-    const y = event.pageY + 10; 
-    tooltip
-      .html(d.key + ": " + d.value) 
-      .style("left", x + "px")
-      .style("top", y + "px");
-     }
+    if (event && d.value) {
+      const x = event.pageX + 10;
+      const y = event.pageY + 10;
+      tooltip
+        .html(d.key + ": " + d.value)
+        .style("left", x + "px")
+        .style("top", y + "px");
+    }
   };
   const mouseleave = function (event, d) {
     tooltip.style("opacity", 0);
     d3.select(this).style("stroke", "none");
   };
+
+
+  const buttonContainer = d3.select("#container").append("div");
+
+  // Sort the data by Plastic_waste_generated and update the chart
+  function compareByGenerated(a, b) {
+    if (a.Plastic_waste_generated > b.Plastic_waste_generated) {
+      return -1;
+    }
+    if (a.Plastic_waste_generated < b.Plastic_waste_generated) {
+      return 1;
+    }
+    return 0;
+  }
+
+  const generateButton = buttonContainer
+    .append("button")
+    .text("Sort by Plastic Waste Generated")
+    .on("click", function () {
+      data.sort(compareByGenerated);
+      // Remove the old chart and buttons
+      d3.select("#container").selectAll("*").remove();
+      d3.select("#bar").selectAll("*").remove();
+      createGroupedBarChart(data);
+    });
+
+  function compareByTreated(a, b) {
+    if (a.Plastic_waste_treated > b.Plastic_waste_treated) {
+      return -1;
+    }
+    if (a.Plastic_waste_treated < b.Plastic_waste_treated) {
+      return 1;
+    }
+    return 0;
+  }
+
+  const treatedButton = buttonContainer
+    .append("button")
+    .text("Sort by Plastic Waste Treated")
+    .on("click", function () {
+      data.sort(compareByTreated);
+      // Remove the old chart and buttons
+      d3.select("#container").selectAll("*").remove();
+      d3.select("#bar").selectAll("*").remove();
+      createGroupedBarChart(data);
+    });
+
+  function compareAlphabetically(a, b) {
+    if (a.Country < b.Country) {
+      return -1;
+    }
+    if (a.Country > b.Country) {
+      return 1;
+    }
+    return 0;
+  }
+
+  const alphabeticalButton = buttonContainer
+    .append("button")
+    .text("Sort Alphabetically")
+    .on("click", function () {
+      data.sort(compareAlphabetically);
+      // Remove the old chart and buttons
+      d3.select("#container").selectAll("*").remove();
+      d3.select("#bar").selectAll("*").remove();
+      createGroupedBarChart(data);
+    });
 
   /* Working with Color: https://observablehq.com/@d3/working-with-color 
     d3-scale-chromatic: https://github.com/d3/d3-scale-chromatic */
@@ -324,6 +389,7 @@ const createGroupedBarChart = (data) => {
     .attr("text-anchor", "left")
     .style("alignment-baseline", "middle")
     .style("font-family", "sans-serif");
+
 };
 
 const createLineChart = (data) => {
@@ -530,7 +596,6 @@ const createDonutChart = (data) => {
   // Set the initial radius value
   let radius = Math.min(width, height) / 2 - 20;
 
-
   const color = d3.scaleOrdinal().range(d3.schemeTableau10);
 
   const pie = d3
@@ -544,6 +609,42 @@ const createDonutChart = (data) => {
     .arc()
     .outerRadius(radius - 10)
     .innerRadius(radius - 70);
+
+  const tooltip = d3
+        .select("#donut")
+        .append("div")
+        .style("opacity", 0)
+        .attr("class", "tooltipDonut")
+        .style("border", "solid")
+        .style("border-width", "2px")
+        .style("border-radius", "5px")
+        .style("padding", "5px");
+
+  // Three function that change the tooltip when user hover / move / leave a cell
+  const mouseover = function (event, d) {
+    tooltip
+      .style("background-color", "black")
+      .style("color", "white")
+      .style("opacity", "70%");
+    d3.select(this)
+      .style("stroke", "black")
+      .style("opacity", 1)
+      .style("stroke-width", "1px");
+  };
+  const mousemove = function (event, d) {
+    if (event && d.value) {
+      const x = event.pageX + 10;
+      const y = event.pageY + 10;
+      tooltip
+        .html(d.data.key + ": " + d3.format(".2f")(d.data.value) + "%")
+        .style("left", x + "px")
+        .style("top", y + "px");
+    }
+  };
+  const mouseleave = function (event, d) {
+    tooltip.style("opacity", 0);
+    d3.select(this).style("stroke", "none").style("stroke-width", "0px");
+  };
 
   const svg = d3
     .select("#donut")
@@ -636,7 +737,10 @@ const createDonutChart = (data) => {
       .attr("class", "arcs")
       .style("fill", function (d) {
         return color(d.data.key);
-      });
+      })
+      .on("mouseover", mouseover)
+      .on("mousemove", mousemove)
+      .on("mouseleave", mouseleave);
 
     /*
     gEnter
@@ -670,6 +774,7 @@ const createDonutChart = (data) => {
       .text(function (d) {
         return d3.format(".2f")(d.data.value) + "%";
       });
+
 
     // Append a text element to the g element and set its text to the name of the country
     countryNameText.text(country);
