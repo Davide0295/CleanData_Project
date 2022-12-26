@@ -10,6 +10,8 @@
   margin-top: 2%;
 }
 
+
+
 html, body {
   margin: 0;
   padding: 0;
@@ -86,6 +88,10 @@ button {
   margin-top: 10px;
   margin-left: 5px;
   cursor: pointer;
+}
+
+button:hover {
+  background-color: #49d3a0;
 }
 
 .info {
@@ -198,6 +204,11 @@ html {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
   margin: 8px;
 }
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
 
 .about-section {
   padding: 50px;
