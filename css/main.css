@@ -7,9 +7,8 @@
   margin-left: auto;
   width: 100%;
   max-width: 1000px;
-  margin-top: 2%;
+  margin-top: 0;
 }
-
 
 
 html, body {
@@ -120,7 +119,12 @@ button:hover {
 }
 
 #line {
-  margin-top: 8%;
+  margin-top: 2%;
+}
+
+#container {
+  margin-top: 5%;
+  margin-left: 15%;
 }
 
 footer {
