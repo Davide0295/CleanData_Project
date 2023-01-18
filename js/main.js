@@ -1,5 +1,6 @@
 const parseDate = d3.utcParse("%Y");
 const parseTime = d3.timeFormat("%Y");
+const formatComma = d3.format(",");
 
 /* Load the dataset and formatting variables
   Ref: https://www.d3indepth.com/requests/ */
@@ -17,8 +18,8 @@ d3.csv("./data/merged_data_population.csv", (d) => {
     "Recovery - energy recovery": +d["Recovery - energy recovery"],
     "Recovery - recycling": +d["Recovery - recycling"],
     "Recovery - backfilling": +d["Recovery - backfilling"],
-    "Population": +d.Population,
-    "Plastic_waste_generated_per_person": +d.Plastic_waste_generated_per_person,
+    Population: +d.Population,
+    Plastic_waste_generated_per_person: +d.Plastic_waste_generated_per_person,
     Date: parseTime(parseDate(+d.Year)),
   };
 }).then((data) => {
@@ -164,11 +165,19 @@ const createGroupedBarChart = (data) => {
     )
     .padding(0.2);
 
-
   yScale = d3.scaleLinear(
     [0, d3.max(data, (d) => d.Plastic_waste_generated)],
     [height - margin.bottom, margin.top]
   );
+
+  svg
+    .append("g")
+    .call(
+      d3
+        .axisLeft(yScale)
+        .tickFormat((d) => d3.format(",")(d / 1000000) + " M")
+    )
+    .attr("transform", `translate(${margin.left}, 0)`);
 
   /* Add the tooltip when hover on the bar */
   //bar.append("title").text((d) => d.key + ": " + d.value);
@@ -195,7 +204,9 @@ const createGroupedBarChart = (data) => {
       const x = event.pageX + 10;
       const y = event.pageY + 10;
       tooltip
-        .html(d.key + ": " + d.value)
+        .html(
+          d.key.replace(/_/g, " ") + ": " + formatComma(d.value) + " Tonnes"
+        )
         .style("left", x + "px")
         .style("top", y + "px");
     }
@@ -204,7 +215,6 @@ const createGroupedBarChart = (data) => {
     tooltip.style("opacity", 0);
     d3.select(this).style("stroke", "none");
   };
-
 
   const buttonContainer = d3.select("#container").append("div");
 
@@ -275,7 +285,7 @@ const createGroupedBarChart = (data) => {
   /* Working with Color: https://observablehq.com/@d3/working-with-color 
     d3-scale-chromatic: https://github.com/d3/d3-scale-chromatic */
   const sub = data.map(
-    ({Plastic_waste_generated, Plastic_waste_treated }) => ({
+    ({ Plastic_waste_generated, Plastic_waste_treated }) => ({
       Plastic_waste_generated,
       Plastic_waste_treated,
     })
@@ -284,7 +294,7 @@ const createGroupedBarChart = (data) => {
 
   //console.log(subgroups);
 
-  const color = d3.scaleOrdinal().domain(subgroups).range(d3.schemeTableau10);
+  const color = d3.scaleOrdinal().domain(subgroups).range(d3.schemeSet2);
 
   //Another scale for subgroup (categories) position
   const xSubgroup = d3
@@ -349,8 +359,6 @@ const createGroupedBarChart = (data) => {
 
   const yAxis = d3.axisLeft(yScale);
 
-  svg.append("g").attr("transform", `translate(${margin.left}, 0)`).call(yAxis);
-
   /*Legend
   Ref: https://observablehq.com/@itrew/legend
   */
@@ -360,7 +368,7 @@ const createGroupedBarChart = (data) => {
     // Apply a translation to the entire group
     .attr("transform", `translate(650, ${margin.top})`);
 
-  const size = 15;
+  const size = 18;
   const border_padding = 12;
   const item_padding = 5;
   const text_offset = 2;
@@ -368,11 +376,11 @@ const createGroupedBarChart = (data) => {
   // Border
   legend
     .append("rect")
-    .attr("width", 220)
+    .attr("width", 160)
     .attr("height", 60)
     .style("fill", "none")
     .style("stroke-width", 1)
-    .style("stroke", "black");
+    .style("stroke", "grey");
 
   // Boxes
   legend
@@ -399,11 +407,9 @@ const createGroupedBarChart = (data) => {
         border_padding + i * (size + item_padding) + size / 2 + text_offset
     )
     // .style("fill", (d) => color(d))
-    .text((d) => d)
+    .text((d) => d.replace(/_/g, " "))
     .attr("text-anchor", "left")
-    .style("alignment-baseline", "middle")
-    .style("font-family", "sans-serif");
-
+    .style("font-size", "12px");
 };
 
 const createLineChart = (data) => {
@@ -423,20 +429,20 @@ const createLineChart = (data) => {
   /* Define x-axis, y-axis, and color scales */
   const yScale = d3
     .scaleLinear()
-    .domain([0, d3.max(data, d => d.Plastic_waste_generated)])
+    .domain([0, d3.max(data, (d) => d.Plastic_waste_generated)])
     .range([height - margins.bottom, margins.top]);
 
   const yScale2 = d3
     .scaleLinear()
-    .domain([0, d3.max(data, d => d.Plastic_waste_treated)])
+    .domain([0, d3.max(data, (d) => d.Plastic_waste_treated)])
     .range([height - margins.bottom, margins.top]);
 
   const xScale = d3
     .scaleTime()
-    .domain(d3.extent(data, (d) => parseDate(+d.Year)))
-    .range([margins.left, width - margins.right]);
+    .domain(d3.extent(data, (d) => new Date(d.Year, 0, 1)))
+    .range([margins.left + 20, width - margins.right]);
 
-    const tooltip = d3
+  const tooltip = d3
     .select("#line")
     .append("div")
     .style("opacity", 0)
@@ -445,114 +451,26 @@ const createLineChart = (data) => {
     .style("border-width", "2px")
     .style("border-radius", "5px")
     .style("padding", "5px")
-
-  // Three function that change the tooltip when user hover / move / leave a cell
-  const mouseover = function (event, d) {
-    tooltip
     .style("background-color", "black")
-    .style("color","white")
-    .style("opacity", "70%")
-  d3.select(this)
-    .style("stroke", "#1F77B4FF")
-    .style("opacity", 1)
-    .style('stroke-width', '4px')
-  };
-  const mousemove = function (event, d) {
-    tooltip
-    .html("Plastic waste generated")
-    .style("top", (event.pageY)+"px")
-    .style("left",(event.pageX)+"px");   
-  };
-  const mouseleave = function (event, d) {
-    tooltip.style("opacity", 0)
-    d3.select(this)
-      .style("stroke", "#1F77B4FF")
-      .style('stroke-width', '2px')
-  };
-
-  const mouseover2 = function (event, d) {
-    tooltip
-    .style("background-color", "black")
-    .style("color","white")
-    .style("opacity", "70%")
-  d3.select(this)
-    .style("stroke", "#FF7F0EFF")
-    .style("opacity", 1)
-    .style('stroke-width', '4px')
-  };
-  const mousemove2 = function (event, d) {
-    tooltip
-    .html("Plastic waste treated")
-    .style("top", (event.pageY)+"px")
-    .style("left",(event.pageX)+"px");   
-  };
-  const mouseleave2 = function (event, d) {
-    tooltip.style("opacity", 0)
-    d3.select(this)
-      .style("stroke", "#FF7F0EFF")
-      .style('stroke-width', '2px')
-  }
+    .style("color", "white");
 
   //* Create line paths for each country */
-  const path = svg
-    .append("path")
-    .datum(data)
-    .attr("fill", "none")
-    .attr("id","line1")
-    .attr("stroke", "#1F77B4FF")
-    .attr("stroke-width", 1.5)
-    .attr(
-      "d",
-      d3
-        .line()
-        .x(function (d) {
-          return xScale(parseDate(+d.Year));
-        })
-        .y(function (d) {
-          return yScale(d.Plastic_waste_generated);
-        })
-    )
-    .on("mouseover", mouseover)
-    .on("mousemove", mousemove)
-    .on("mouseleave", mouseleave);
 
-    const path2 = svg
-      .append("path")
-      .datum(data)
-      .attr("fill", "none")
-      .attr("id","line2")
-      .attr("stroke", "#FF7F0EFF")
-      .attr("stroke-width", 1.5)
-      .attr(
-        "d",
-        d3
-          .line()
-          .x(function (d) {
-            return xScale(parseDate(+d.Year));
-          })
-          .y(function (d) {
-            return yScale(d.Plastic_waste_treated);
-          })
-      )
-      .on("mouseover", mouseover2)
-      .on("mousemove", mousemove2)
-      .on("mouseleave", mouseleave2);
-  
   const plasticWasteGenerated = data.map((d) => d.Plastic_waste_generated);
   const plasticWasteTreated = data.map((d) => d.Plastic_waste_treated);
 
   const circles = svg
     .selectAll("circle")
-    .data(plasticWasteGenerated) 
+    .data(plasticWasteGenerated)
     .enter()
     .append("circle")
-    .attr("cx", (d, i) => xScale(parseDate(+data[i].Year))) 
-    .attr("cy", (d) => yScale(d)) 
+    .attr("cx", (d, i) => xScale(parseDate(+data[i].Year)))
+    .attr("cy", (d) => yScale(d))
     .attr("r", 5)
-    .style("fill", "#1F77B4FF")
-    .style("opacity", 0.7);
+    .style("fill", "#66c2a5")
+    .style("opacity", 1);
 
-    /*
+  /*
   const text = svg
     .selectAll("text")
     .data(plasticWasteGenerated) 
@@ -567,15 +485,15 @@ const createLineChart = (data) => {
     */
 
   const circles2 = svg
-  .selectAll("circle2")
-  .data(plasticWasteTreated) 
-  .enter()
-  .append("circle")
-  .attr("cx", (d, i) => xScale(parseDate(+data[i].Year))) 
-  .attr("cy", (d) => yScale(d)) 
-  .attr("r", 5)
-  .style("fill", "#FF7F0EFF")
-  .style("opacity", 0.7);
+    .selectAll("circle2")
+    .data(plasticWasteTreated)
+    .enter()
+    .append("circle")
+    .attr("cx", (d, i) => xScale(parseDate(+data[i].Year)))
+    .attr("cy", (d) => yScale(d))
+    .attr("r", 5)
+    .style("fill", "#fc8d62")
+    .style("opacity", 1);
 
   /*
 const text2 = svg
@@ -591,38 +509,53 @@ const text2 = svg
   .style("opacity", 0.7);
   */
 
-     const tooltip3 = d3
-       .select("#line")
-       .append("div")
-       .style("opacity", 0)
-       .attr("class", "tooltip")
-       .style("border", "solid")
-       .style("border-width", "2px")
-       .style("border-radius", "5px")
-       .style("padding", "5px");
+  // Function that shows the tooltip when hovering on the line
+  const mouseover3 = function (event, d, i) {
+    if (d.Plastic_waste_generated !== 0) {
+      let percentage =
+        ((d.Plastic_waste_generated -
+          d.Plastic_waste_treated -
+          (data[0].Plastic_waste_generated - data[0].Plastic_waste_treated)) /
+          (data[0].Plastic_waste_generated - data[0].Plastic_waste_treated)) *
+        100;
+      let sign = percentage > 0 ? "+" : "";
+      tooltip
+        .html(
+          `Difference: ${
+            formatComma(d.Plastic_waste_generated - d.Plastic_waste_treated) +
+            " Tonnes"
+          } (${sign}${percentage.toFixed(2)}%)`
+        )
+        .style("opacity", "70%")
+        .style("top", event.pageY + "px")
+        .style("left", event.pageX + "px");
+      tooltip
+        .style("background-color", "black")
+        .style("color", "white")
+        .style("opacity", "80%");
+    } else {
+      tooltip
+        .html(
+          `Difference: ${
+            formatComma(d.Plastic_waste_generated - d.Plastic_waste_treated) +
+            " Tonnes"
+          }`
+        )
+        .style("opacity", "70%")
+        .style("top", event.pageY + "px")
+        .style("left", event.pageX + "px");
+    }
+  };
 
-     // Function that shows the tooltip when hovering on the line
-     const mouseover3 = function (event, d) {
-       tooltip
-         .html(
-           `Difference: ${d.Plastic_waste_generated - d.Plastic_waste_treated}`
-         )
-         .style("opacity", "70%")
-         .style("top", event.pageY + "px")
-         .style("left", event.pageX + "px");
-     };
+  // Function that updates the position of the tooltip when moving the cursor
+  const mousemove3 = function (event, d) {
+    tooltip.style("top", event.pageY + "px").style("left", event.pageX + "px");
+  };
 
-     // Function that updates the position of the tooltip when moving the cursor
-     const mousemove3 = function (event, d) {
-       tooltip
-         .style("top", event.pageY + "px")
-         .style("left", event.pageX + "px");
-     };
-
-     // Function that hides the tooltip when moving the cursor away from the line
-     const mouseleave3 = function (event, d) {
-       tooltip.style("opacity", 0);
-     };
+  // Function that hides the tooltip when moving the cursor away from the line
+  const mouseleave3 = function (event, d) {
+    tooltip.style("opacity", 0);
+  };
 
   svg
     .selectAll("line")
@@ -633,13 +566,11 @@ const text2 = svg
     .attr("y1", (d) => yScale(d.Plastic_waste_generated))
     .attr("x2", (d) => xScale(parseDate(+d.Year)))
     .attr("y2", (d) => yScale(d.Plastic_waste_treated))
-    .attr("stroke", "red")
+    .attr("stroke", "grey")
     .attr("stroke-width", 3)
     .on("mouseover", mouseover3)
     .on("mousemove", mousemove3)
     .on("mouseleave", mouseleave3);
-  
-
 
   const xAxis = d3.axisBottom(xScale);
 
@@ -648,66 +579,68 @@ const text2 = svg
     .attr("transform", `translate(0,${height - margins.bottom})`)
     .call(xAxis);
 
-  const yAxis = d3.axisLeft(yScale);
+  svg
+    .append("g")
+    .call(
+      d3
+        .axisLeft(yScale)
+        .tickFormat((d) => d3.format(",")(d / 1000000) + " M")
+    )
+    .attr("transform", `translate(${margins.left}, 0)`);
 
-  svg.append("g").attr("transform", `translate(${margins.left},0)`).call(yAxis);
+  const legend = svg
+    .append("g")
+    .attr(
+      "transform",
+      "translate(" +
+        (width - margins.right - 120) +
+        "," +
+        (height - margins.bottom - 70) +
+        ")"
+    );
 
-      const legend = svg
-        .append("g")
-        .attr(
-          "transform",
-          "translate(" +
-            (width - margins.right - 120) +
-            "," +
-            (height - margins.bottom - 70) +
-            ")"
-        );
+  legend
+    .append("rect")
+    .attr("width", 150)
+    .attr("height", 55)
+    .attr("fill", "none")
+    .attr("stroke", "grey")
+    .attr("stroke-width", 1)
+    .attr("x", -5)
+    .attr("y", -5);
 
-        legend
-          .append("rect")
-          .attr("width", 150)
-          .attr("height", 60)
-          .attr("fill", "none")
-          .attr("stroke", "black")
-          .attr("stroke-width", 1)
-          .attr("x", -5)
-          .attr("y", -5);
+  legend
+    .append("rect")
+    .attr("width", 18)
+    .attr("height", 18)
+    .attr("fill", "#66c2a5")
+    .attr("x", 0)
+    .attr("y", 0);
 
-     legend
-       .append("rect")
-       .attr("width", 18)
-       .attr("height", 18)
-       .attr("fill", "#1F77B4FF")
-       .attr("x", 0)
-       .attr("y", 0);
+  legend
+    .append("text")
+    .attr("x", 20)
+    .attr("y", 12)
+    .text("Plastic waste generated")
+    .style("font-size", "12px");
 
-     legend
-       .append("text")
-       .attr("x", 20)
-       .attr("y", 12)
-       .text("Plastic waste generated")
-       .style("font-size", "12px");
+  legend
+    .append("rect")
+    .attr("width", 18)
+    .attr("height", 18)
+    .attr("fill", "#f58d62")
+    .attr("x", 0)
+    .attr("y", 25);
 
-     legend
-       .append("rect")
-       .attr("width", 18)
-       .attr("height", 18)
-       .attr("fill", "#FF7F0EFF")
-       .attr("x", 0)
-       .attr("y", 25);
-       
-     legend
-       .append("text")
-       .attr("x", 20)
-       .attr("y", 37)
-       .text("Plastic waste treated")
-       .style("font-size", "12px")
-       .style("fill", "black")
-       .style("stroke", "none");
-
-
+  legend
+    .append("text")
+    .attr("x", 20)
+    .attr("y", 37)
+    .text("Plastic waste treated")
+    .style("font-size", "12px")
+    .style("fill", "black")
+    .style("stroke", "none");
 };
-
 
 const createDonutChart = (data) => {
   // Set up the donut chart using D3.js
@@ -732,14 +665,14 @@ const createDonutChart = (data) => {
     .innerRadius(radius - 70);
 
   const tooltip = d3
-        .select("#donut")
-        .append("div")
-        .style("opacity", 0)
-        .attr("class", "tooltipDonut")
-        .style("border", "solid")
-        .style("border-width", "2px")
-        .style("border-radius", "5px")
-        .style("padding", "5px");
+    .select("#donut")
+    .append("div")
+    .style("opacity", 0)
+    .attr("class", "tooltipDonut")
+    .style("border", "solid")
+    .style("border-width", "2px")
+    .style("border-radius", "5px")
+    .style("padding", "5px");
 
   // Three function that change the tooltip when user hover / move / leave a cell
   const mouseover = function (event, d) {
@@ -896,7 +829,6 @@ const createDonutChart = (data) => {
         return d3.format(".2f")(d.data.value) + "%";
       });
 
-
     // Append a text element to the g element and set its text to the name of the country
     countryNameText.text(country);
 
@@ -926,5 +858,4 @@ const createDonutChart = (data) => {
 
   // Initialize the donut chart with the data for the first country in the list
   updateDonut(data[0].Country);
-  
 };

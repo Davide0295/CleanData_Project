@@ -1,5 +1,5 @@
 * {
-  font-family: "Roboto";
+  font-family: "Cambria";
 }
 
 .responsive-svg-container {
@@ -76,7 +76,7 @@ h1 {
 }
 
 button {
-  background-color: #04AA6D; 
+  background-color: #acacac; 
   border: none;
   color: white;
   padding: 5px 20px;
@@ -87,10 +87,11 @@ button {
   margin-top: 10px;
   margin-left: 5px;
   cursor: pointer;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
 }
 
 button:hover {
-  background-color: #49d3a0;
+  background-color: #04AA6D;
 }
 
 .info {
