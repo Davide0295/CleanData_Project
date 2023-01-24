@@ -136,11 +136,48 @@ d3.csv("./data/merged_data_population.csv", (d) => {
 
   console.log(PercentageManagementOp);
 
+  const Plastic_per_person = d3
+    .rollups(
+      data,
+      (v) => {
+        return {
+          values: {
+            Total_plastic_generated_per_person: d3.sum(
+              v,
+              (x) => x.Plastic_waste_generated_per_person
+            ),
+            Total_population: d3.mean(
+              v,
+              (x) => x.Population
+            ),
+          },
+        };
+      },
+      (d) => d.Country
+    )
+    .map(([k, v]) => ({
+      Country: k,
+      Plastic_generated_per_capita:
+        v.values.Total_plastic_generated_per_person / 6,
+      Population: v.values.Total_population
+    }));
+
+  //Sort data
+  Plastic_per_person.sort(function (b, a) {
+    return a.Population - b.Population;
+  });
+
+  console.log(Plastic_per_person);
+
   createGroupedBarChart(Plastic_waste);
 
   createLineChart(Plastic_waste_treatedVsgenerated);
 
   createDonutChart(PercentageManagementOp);
+
+  createBarChart(Plastic_per_person);
+
+  //createMapChart(Plastic_per_person);
 });
 
 const createGroupedBarChart = (data) => {
@@ -173,9 +210,7 @@ const createGroupedBarChart = (data) => {
   svg
     .append("g")
     .call(
-      d3
-        .axisLeft(yScale)
-        .tickFormat((d) => d3.format(",")(d / 1000000) + " M")
+      d3.axisLeft(yScale).tickFormat((d) => d3.format(",")(d / 1000000) + " M")
     )
     .attr("transform", `translate(${margin.left}, 0)`);
 
@@ -203,14 +238,35 @@ const createGroupedBarChart = (data) => {
     if (event && d.value) {
       const x = event.pageX + 10;
       const y = event.pageY + 10;
-      tooltip
-        .html(
-          d.key.replace(/_/g, " ") + ": " + formatComma(d.value) + " Tonnes"
-        )
-        .style("left", x + "px")
-        .style("top", y + "px");
+      let percentageTreated;
+      if (d.key === "Plastic_waste_treated" && d.generated != 0) {
+        percentageTreated = (d.treated / d.generated) * 100;
+        const color = percentageTreated > 51 ? "green" : "red";
+        tooltip
+          .html(
+            d.key.replace(/_/g, " ") +
+              ": " +
+              formatComma(d.value) +
+              " T" +
+              " " +
+              " (" +
+              "<span style='color:" +
+              color +
+              "'>" +
+              percentageTreated.toFixed(0) +
+              "%</span>)"
+          )
+          .style("left", x + "px")
+          .style("top", y + "px");
+      } else {
+        tooltip
+          .html(d.key.replace(/_/g, " ") + ": " + formatComma(d.value) + " T")
+          .style("left", x + "px")
+          .style("top", y + "px");
+      }
     }
   };
+
   const mouseleave = function (event, d) {
     tooltip.style("opacity", 0);
     d3.select(this).style("stroke", "none");
@@ -315,7 +371,12 @@ const createGroupedBarChart = (data) => {
     .selectAll("rect")
     .data(function (d) {
       return subgroups.map(function (key) {
-        return { key: key, value: d[key] };
+        return {
+          key: key,
+          value: d[key],
+          generated: d.Plastic_waste_generated,
+          treated: d.Plastic_waste_treated,
+        };
       });
     })
     .join("rect")
@@ -461,13 +522,24 @@ const createLineChart = (data) => {
 
   const circles = svg
     .selectAll("circle")
-    .data(plasticWasteGenerated)
+    .data(data)
     .enter()
     .append("circle")
-    .attr("cx", (d, i) => xScale(parseDate(+data[i].Year)))
-    .attr("cy", (d) => yScale(d))
+    .attr("cx", (d) => xScale(parseDate(+d.Year)))
+    .attr("cy", (d) => yScale(d.Plastic_waste_generated))
     .attr("r", 5)
     .style("fill", "#66c2a5")
+    .style("opacity", 1);
+
+  const circles2 = svg
+    .selectAll("circle2")
+    .data(data)
+    .enter()
+    .append("circle")
+    .attr("cx", (d) => xScale(parseDate(+d.Year)))
+    .attr("cy", (d) => yScale(d.Plastic_waste_treated))
+    .attr("r", 5)
+    .style("fill", "#fc8d62")
     .style("opacity", 1);
 
   /*
@@ -483,17 +555,6 @@ const createLineChart = (data) => {
     .style("fill", "black")
     .style("opacity", 0.7);
     */
-
-  const circles2 = svg
-    .selectAll("circle2")
-    .data(plasticWasteTreated)
-    .enter()
-    .append("circle")
-    .attr("cx", (d, i) => xScale(parseDate(+data[i].Year)))
-    .attr("cy", (d) => yScale(d))
-    .attr("r", 5)
-    .style("fill", "#fc8d62")
-    .style("opacity", 1);
 
   /*
 const text2 = svg
@@ -512,6 +573,7 @@ const text2 = svg
   // Function that shows the tooltip when hovering on the line
   const mouseover3 = function (event, d, i) {
     if (d.Plastic_waste_generated !== 0) {
+      console.log(data[3]);
       let percentage =
         ((d.Plastic_waste_generated -
           d.Plastic_waste_treated -
@@ -582,9 +644,7 @@ const text2 = svg
   svg
     .append("g")
     .call(
-      d3
-        .axisLeft(yScale)
-        .tickFormat((d) => d3.format(",")(d / 1000000) + " M")
+      d3.axisLeft(yScale).tickFormat((d) => d3.format(",")(d / 1000000) + " M")
     )
     .attr("transform", `translate(${margins.left}, 0)`);
 
@@ -859,3 +919,152 @@ const createDonutChart = (data) => {
   // Initialize the donut chart with the data for the first country in the list
   updateDonut(data[0].Country);
 };
+
+const createBarChart = (data) => {
+  const width = 1000;
+  const height = 500;
+  const margin = { top: 40, right: 20, bottom: 80, left: 65 };
+
+  const x = d3
+    .scaleBand()
+    .range([margin.left, width - margin.right])
+    .paddingInner(0.4)
+    .paddingOuter(0.5);
+
+  const y = d3.scaleLinear().range([height - margin.bottom, margin.top]);
+
+  const svg = d3
+    .select("#sbar")
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+  x.domain(data.map((d) => d.Country));
+  y.domain([0, d3.max(data, (d) => d.Plastic_generated_per_capita)]);
+
+  const color = d3.scaleOrdinal(d3.schemeSet2);
+
+  const buttonContainer = d3.select("#scontainer").append("div");
+
+  // Sort the data by Plastic_generated_per_capita and update the chart
+  function compareByGenerated(a, b) {
+    if (a.Plastic_generated_per_capita > b.Plastic_generated_per_capita) {
+      return -1;
+    }
+    if (a.Plastic_generated_per_capita < b.Plastic_generated_per_capita) {
+      return 1;
+    }
+    return 0;
+  }
+
+  const generateButton = buttonContainer
+    .append("button")
+    .text("Sort by Descending Plastic")
+    .on("click", function () {
+      data.sort(compareByGenerated);
+      // Remove the old chart and buttons
+      d3.select("#scontainer").selectAll("*").remove();
+      d3.select("#sbar").selectAll("*").remove();
+      createBarChart(data);
+    });
+
+  // Sort the data by Plastic_generated_per_capita and update the chart
+  function compareByAscGenerated(a, b) {
+    if (a.Plastic_generated_per_capita < b.Plastic_generated_per_capita) {
+      return -1;
+    }
+    if (a.Plastic_generated_per_capita > b.Plastic_generated_per_capita) {
+      return 1;
+    }
+    return 0;
+  }
+
+  const ascendingButton = buttonContainer
+    .append("button")
+    .text("Sort by Ascending Plastic")
+    .on("click", function () {
+      data.sort(compareByAscGenerated);
+      // Remove the old chart and buttons
+      d3.select("#scontainer").selectAll("*").remove();
+      d3.select("#sbar").selectAll("*").remove();
+      createBarChart(data);
+    });
+
+  // Sort the data by Plastic_generated_per_capita and update the chart
+  function compareByDescPop(a, b) {
+    if (a.Population > b.Population) {
+      return -1;
+    }
+    if (a.Population < b.Population) {
+      return 1;
+    }
+    return 0;
+  }
+
+  const descendingPopButton = buttonContainer
+    .append("button")
+    .text("Sort by Population")
+    .on("click", function () {
+      data.sort(compareByDescPop);
+      // Remove the old chart and buttons
+      d3.select("#scontainer").selectAll("*").remove();
+      d3.select("#sbar").selectAll("*").remove();
+      createBarChart(data);
+    });
+
+  svg
+    .append("g")
+    .attr("transform", `translate(0, ${height - margin.bottom})`)
+    .call(d3.axisBottom(x))
+    .selectAll("text")
+    .style("text-anchor", "end")
+    .attr("dx", "-.8em")
+    .attr("dy", ".15em")
+    .attr("transform", "rotate(-65)");
+
+  svg
+    .append("g")
+    .attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(y));
+
+  svg
+    .selectAll("g")
+    .data(data)
+    .enter()
+    .append("g")
+    .attr("class", "bar-group")
+    .attr(
+      "transform",
+      (d) => `translate(${x(d.Country)},${y(d.Plastic_generated_per_capita)})`
+    );
+
+  /*
+  svg
+    .selectAll(".bar")
+    .data(data)
+    .enter()
+    .append("image")
+    .attr("xlink:href", "./images/garbage.png")
+    .attr("x", (d) => x(d.Country))
+    .attr("y", (d) => y(d.Plastic_generated_per_capita) - 40)
+    .attr("width", x.bandwidth())
+    .attr("height", 50);
+*/
+
+  svg
+    .selectAll(".bar")
+    .data(data)
+    .enter()
+    .append("rect")
+    .attr("class", "bar")
+    .attr("x", (d) => x(d.Country))
+    .attr("y", (d) => y(d.Plastic_generated_per_capita))
+    .attr("width", x.bandwidth())
+    .attr("fill", d3.schemeSet2)
+    .attr(
+      "height",
+      (d) => height - margin.bottom - y(d.Plastic_generated_per_capita)
+    )
+    .attr("fill", "#66c2a5");
+};
+

@@ -27,11 +27,21 @@ p, label {
 
 h1 {
   text-align-last: center;
-  border: 6px double rgb(9, 9, 9);
+  border: 2px solid rgb(9, 9, 9);
 }
 
 #plasticWaste {
   margin-top: 2%;
+}
+
+#intro, #plasticOp, #plasticWaste {
+  padding: 10px;
+
+}
+
+#sbar {
+  background-color: white;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
 }
 
 #bar {
@@ -124,6 +134,11 @@ button:hover {
 }
 
 #container {
+  margin-top: 5%;
+  margin-left: 15%;
+}
+
+#scontainer {
   margin-top: 5%;
   margin-left: 15%;
 }
@@ -279,6 +294,7 @@ label {
 #donut {
   width: 100%;
 }
+
 
 .donut {
   width: 100%;

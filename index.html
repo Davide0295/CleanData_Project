@@ -27,18 +27,20 @@
             <i class="fa fa-bars"></i>
         </a>
     </div>
-    <h1>Plastic Waste in European countries</h1>
-    <p>The aim of this analysis would be to provide a comparative study of plastic waste in European different countries, to find how the how much plastic waste each country generates and treats and which methodologies are used to treat plasti waste.
-    After considering different research questions, we finally decided to focus on answering the following: <br> 
-    <br>
-    <i>"How is plastic treated in different European countries, how is the trend evolving over the last years and what is the relationship between plastic waste treatment and plastic waste generation?"</i>
-    <br>
-    <br> The data used for this project has been collected from Eurostat:
-    <ul>
-        <li> <a href="https://ec.europa.eu/eurostat/databrowser/view/ENV_WASTRT__custom_3487128/default/table?lang=en">Eurostat - Plastic management operations in EU countries, over the years</a></li>
-        <li> <a href="https://ec.europa.eu/eurostat/databrowser/view/ENV_WASGEN/default/table?lang=en&category=env.env_was.env_wasgt">Eurostat - Plastic waste generation in EU countries, over the years</a></li>
-    </ul>
-    </p>
+    <div id="intro">
+        <h1>Plastic Waste in European countries</h1>
+        <p>The aim of this analysis would be to provide a comparative study of plastic waste in European different countries, to find how the how much plastic waste each country generates and treats and which methodologies are used to treat plasti waste.
+        After considering different research questions, we finally decided to focus on answering the following: <br> 
+        <br>
+        <i>"How is plastic treated in different European countries, how is the trend evolving over the last years and what is the relationship between plastic waste treatment and plastic waste generation?"</i>
+        <br>
+        <br> The data used for this project has been collected from Eurostat:
+        <ul>
+            <li> <a href="https://ec.europa.eu/eurostat/databrowser/view/ENV_WASTRT__custom_3487128/default/table?lang=en">Eurostat - Plastic management operations in EU countries, over the years</a></li>
+            <li> <a href="https://ec.europa.eu/eurostat/databrowser/view/ENV_WASGEN/default/table?lang=en&category=env.env_was.env_wasgt">Eurostat - Plastic waste generation in EU countries, over the years</a></li>
+        </ul>
+        </p>
+    </div>
     <div id="plasticWaste">
         <h2> Plastic waste generated Vs Plastic waste treated </h2> 
         <p> Here we present the relationship between plastic waste generated and plastic waste treated in different European countries.
@@ -51,7 +53,9 @@
             <i class="fa fa-info-circle" style="font-size:20px;color:grey"></i>
             <span class="infotext">Hover on a bar to display its value</span>
           </div>
-          <div id="line" class="responsive-svg-container"></div>    
+          <div id="line" class="responsive-svg-container"></div> 
+        <div id="scontainer"></div>
+          <div id="sbar" class="responsive-svg-container"></div>
           <div id="container"></div>
           <div id="bar" class="responsive-svg-container"></div>
 
@@ -86,6 +90,7 @@
         <p>© 2022 CleanData</p>
     </footer>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="js/main.js"></script>
     <script src="js/functions.js"></script>
