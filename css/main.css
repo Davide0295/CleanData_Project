@@ -1,5 +1,5 @@
 * {
-  font-family: "Cambria";
+  font-family:'Times New Roman', Times, serif;
 }
 
 .responsive-svg-container {
@@ -17,17 +17,33 @@ html, body {
   background-color: white;
 }
 
-h1, h2 {
+h1, h2, h3 {
   margin: 10px;
 }
 
+
 p, label {
   margin: 10px;
+  font-size: larger;
+}
+
+li {
+  font-size: larger;
+  margin: 20px 0;
 }
 
 h1 {
   text-align-last: center;
   border: 2px solid rgb(9, 9, 9);
+}
+
+h2 {
+  font-size:xx-large;
+}
+
+h3 {
+  font-weight: lighter;
+  font-size: x-large;
 }
 
 #plasticWaste {
@@ -44,25 +60,108 @@ h1 {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
 }
 
+
 #bar {
   background-color: white;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+}
+
+#treatedVsGen {
+  width: 97%;
+  height: 700px;
+  background: white;
+  margin: auto;
+  padding: 10px;
+  margin-top: 5%;
+}
+
+#intro {
+  width: 97%;
+  height: 150px;
+  margin: auto;
+  padding: 20px;
+}
+
+#plasticGap {
+  width: 97%;
+  height: 650px;
+  background: white;
+  margin: auto;
+  padding: 10px;
+
+}
+
+#lineDesc {
+  width: 26%;
+  height: 500px;
+  float: right;
+  margin-top: 2%;
 }
 
 #line {
   background-color: white;
   padding-top: 3%;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  float: left;
 }
+
+#plasticPerCap {
+  width: 97%;
+  height: 700px;
+  background: white;
+  margin: auto;
+  padding: 10px;
+  margin-top: 5%;
+}
+
+#barDesc {
+  width: 28%;
+  height: 500px;
+  float: left;
+  margin-top: 3%;
+}
+
+#bar1 {
+  float: right;
+  width: 70%;
+}
+
+#bar2Desc {
+  width: 25%;
+  height: 500px;
+  float: right;
+  margin-top: 3%;
+}
+
+#bar2 {
+  float: left;
+  width: 75%;
+}
+
+#donutDesc {
+  width: 35%;
+  height: 500px;
+  float: left;
+  margin-top: 3%;
+}
+
 
 #donut {
   background-color: white;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-  width: 55%;
+  width: 60%;
+  float: right;
+  margin-top: 3%;
+  margin-right: 3%;
 }
 
 #plasticOp{
-  margin-top: 3%;
+  width: 97%;
+  height: 600px;
+  background: white;
+  margin: auto;
+  padding: 10px;
+  margin-top: 8%;
 }
 
 .tooltip {
@@ -71,6 +170,11 @@ h1 {
 }
 
 .tooltipDonut {
+  position: absolute;
+  pointer-events: none; 
+}
+
+.tooltipSBar {
   position: absolute;
   pointer-events: none; 
 }
@@ -104,16 +208,38 @@ button:hover {
   background-color: #04AA6D;
 }
 
+.info1 {
+  display: inline-block;
+  border-bottom: 2px dotted black;
+}
+
+.info1 .infotext1 {
+  visibility: hidden;
+  width: 300px;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+
+  /* Position the tooltip */
+  position: absolute;
+  z-index: 1;
+}
+
+.info1:hover .infotext1 {
+  visibility: visible;
+}
+
 .info {
   position: relative;
   display: inline-block;
-  margin-left: 290px;
   border-bottom: 2px dotted black;
 }
 
 .info .infotext {
   visibility: hidden;
-  width: 120px;
+  width: 180px;
   background-color: black;
   color: #fff;
   text-align: center;
@@ -134,14 +260,9 @@ button:hover {
 }
 
 #container {
-  margin-top: 5%;
-  margin-left: 15%;
+  margin-left: 34%;
 }
 
-#scontainer {
-  margin-top: 5%;
-  margin-left: 15%;
-}
 
 footer {
     position: relative;
@@ -186,8 +307,16 @@ footer {
   top: 0;
 }
 
+.home {
+  background: black;
+  display: block;
+  position: absolute;
+  left:0;
+  top: 0;
+}
+
 /* Add a grey background color on mouse-over */
-.topnav a:hover {
+.topnav a:not(.active):hover {
   background-color: #ddd;
   color: black;
 }
@@ -201,7 +330,6 @@ footer {
 
 /*About page*/
 body {
-  font-family: Arial, Helvetica, sans-serif;
   margin: 0;
 }
 
@@ -267,6 +395,39 @@ html {
   background-color: #555;
 }
 
+/*data used page*/
+#datasets {
+  height: 100vh;
+}
+
+#data {
+  height: 35%;
+  padding: 5%;
+  padding-top: 0;
+}
+
+#tools {
+  height: 100%;
+  padding: 5%;
+  padding-top: 0;
+}
+
+#tool {
+  float: left;
+  width: 33%;
+  padding: 5px;
+  margin-top: 5%;
+  margin-bottom: 10%;
+  margin-left: 0.3%;
+}
+
+#toolIcon {
+  float:left;
+  width: 80%;
+}
+
+
+
 @media screen and (max-width: 650px) {
   .column {
     width: 100%;
@@ -283,7 +444,8 @@ html {
     width: 100%;
     border: 2px solid black;
 }
-  h1, h2, p {
+
+h1, h2, p {
   margin: 5px;
     }
 
@@ -295,10 +457,51 @@ label {
   width: 100%;
 }
 
-
-.donut {
+#sbar {
   width: 100%;
 }
 
+#bar2, #bar1 {
+  width: 100%;
+}
+
+#plasticGap {
+  width: 100%;
+  margin-top: 60%;
+}
+
+ #plasticPerCap {
+  width: 100%;
+  margin-top: 10%;
+ }
+
+ #treatedVsGen {
+   width: 100%;
+   margin-top: 10%;
+ }
+
+#plasticOp {
+  width: 100%;
+  margin-top: 110%;
+}
+
+#lineDesc, #barDesc {
+  width: 100%;
+  height: 45%;
+}
+
+#bar2Desc {
+  width: 100%;
+  height: 90%;
+}
+
+#donutDesc {
+  width: 100%;
+}
+
+footer {
+  position: fixed;
+  bottom: 50;
+}
 
 }

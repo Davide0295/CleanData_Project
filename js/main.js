@@ -146,10 +146,7 @@ d3.csv("./data/merged_data_population.csv", (d) => {
               v,
               (x) => x.Plastic_waste_generated_per_person
             ),
-            Total_population: d3.mean(
-              v,
-              (x) => x.Population
-            ),
+            Total_population: d3.mean(v, (x) => x.Population),
           },
         };
       },
@@ -159,12 +156,12 @@ d3.csv("./data/merged_data_population.csv", (d) => {
       Country: k,
       Plastic_generated_per_capita:
         v.values.Total_plastic_generated_per_person / 6,
-      Population: v.values.Total_population
+      Population: v.values.Total_population,
     }));
 
   //Sort data
   Plastic_per_person.sort(function (b, a) {
-    return a.Population - b.Population;
+    return a.Plastic_generated_per_capita - b.Plastic_generated_per_capita;
   });
 
   console.log(Plastic_per_person);
@@ -704,7 +701,7 @@ const text2 = svg
 
 const createDonutChart = (data) => {
   // Set up the donut chart using D3.js
-  const width = 800,
+  const width = 1000,
     height = 400;
 
   // Set the initial radius value
@@ -777,6 +774,34 @@ const createDonutChart = (data) => {
     .attr("dy", "0em")
     .attr("font-size", "25px")
     .text("");
+/*
+  // Get an array of unique countries
+  const countries = [...new Set(data.map((d) => d.Country))];
+
+  // Append a div container for the checkboxes
+  const checkboxContainer = d3.select("body").append("div");
+
+  // Append checkboxes for each country
+  countries.forEach((country) => {
+    checkboxContainer
+      .append("input")
+      .attr("type", "checkbox")
+      .attr("value", country)
+      .attr("id", country + "-checkbox")
+      .on("change", function () {
+        if (this.checked) {
+          updateDonut(country);
+        } else {
+          d3.selectAll("#" + country + "-donut").remove();
+        }
+      });
+
+    checkboxContainer
+      .append("label")
+      .attr("for", country + "-checkbox")
+      .text(country);
+  });
+  */
 
   // Update the donut chart with the data for the selected country
   function updateDonut(country) {
@@ -856,17 +881,6 @@ const createDonutChart = (data) => {
       .on("mousemove", mousemove)
       .on("mouseleave", mouseleave);
 
-    /*
-    gEnter
-      .append("text")
-      .attr("class", "text")
-      .style("text-anchor", "middle")
-      .attr("dy", "0.35em")
-      .text(function (d) {
-        return d3.format(".2f")(d.data.value) + "%";
-      });
-      */
-
     // Merge the entering and existing elements, and apply the data and style to the merged selection
     g.merge(gEnter)
       .select("path")
@@ -890,11 +904,6 @@ const createDonutChart = (data) => {
       });
 
     // Append a text element to the g element and set its text to the name of the country
-    countryNameText.text(country);
-
-    console.log(dataForCountry);
-
-    // Update the text element with the name of the selected country
     countryNameText.text(country);
 
     // Remove any excess elements that are not bound to data
@@ -921,9 +930,9 @@ const createDonutChart = (data) => {
 };
 
 const createBarChart = (data) => {
-  const width = 1000;
-  const height = 500;
-  const margin = { top: 40, right: 20, bottom: 80, left: 65 };
+    const width = 900,
+      height = 500;
+    const margin = { top: 30, right: 30, bottom: 80, left: 60 };
 
   const x = d3
     .scaleBand()
@@ -936,8 +945,7 @@ const createBarChart = (data) => {
   const svg = d3
     .select("#sbar")
     .append("svg")
-    .attr("width", width)
-    .attr("height", height);
+    .attr("viewBox", [0, 0, width, height]);
 
   x.domain(data.map((d) => d.Country));
   y.domain([0, d3.max(data, (d) => d.Plastic_generated_per_capita)]);
@@ -1051,6 +1059,42 @@ const createBarChart = (data) => {
     .attr("height", 50);
 */
 
+  const meanValue = d3.mean(data, (d) => d.Plastic_generated_per_capita);
+
+   const tooltip = d3
+     .select("#sbar")
+     .append("div")
+     .style("opacity", 0)
+     .attr("class", "tooltipSBar")
+     .style("border", "solid")
+     .style("border-width", "2px")
+     .style("border-radius", "5px")
+     .style("padding", "5px");
+
+   // Three function that change the tooltip when user hover / move / leave a cell
+   const mouseover = function (event, d) {
+     tooltip
+       .style("background-color", "black")
+       .style("color", "white")
+       .style("opacity", "80%")
+       .style("width", 40);
+     d3.select(this).style("stroke", "black").style("opacity", 1);
+   };
+   const mousemove = function (event, d) {
+     if (event) {
+       const x = event.pageX + 10;
+       const y = event.pageY + 10;
+       tooltip
+         .html(d.Plastic_generated_per_capita.toFixed(0) + " kg/capita")
+         .style("left", x + "px")
+         .style("top", y + "px");
+     }
+   };
+   const mouseleave = function (event, d) {
+     tooltip.style("opacity", 0);
+     d3.select(this).style("stroke", "none");
+   };
+
   svg
     .selectAll(".bar")
     .data(data)
@@ -1065,6 +1109,41 @@ const createBarChart = (data) => {
       "height",
       (d) => height - margin.bottom - y(d.Plastic_generated_per_capita)
     )
-    .attr("fill", "#66c2a5");
-};
+    .attr("fill", "#66c2a5")
+    .on("mouseover", mouseover)
+    .on("mousemove", mousemove)
+    .on("mouseleave", mouseleave);
 
+  meanLine = svg
+    .append("line")
+    .attr("x1", margin.left)
+    .attr("y1", y(meanValue))
+    .attr("x2", width - margin.right)
+    .attr("y2", y(meanValue))
+    .attr("stroke", "red")
+    .attr("stroke-width", 3)
+    .style("z-index", 1);
+
+    svg
+      .append("text")
+      .attr("x", width - margin.right - 250)
+      .attr("y", y(meanValue) - 5)
+      .attr("text-anchor", "start")
+      .text(`mean: ${meanValue.toFixed(2)} kg/capita`)
+      .style("fill", "red")
+      .attr("class", "mean-text")
+      .style("opacity", 0);
+
+    meanLine
+      .on("mouseover", function () {
+        d3.select(this).style("stroke-width", 4).style("cursor", "pointer");
+        d3.select(".mean-text").style("opacity", 1).style("cursor", "pointer");
+      })
+      .on("mouseout", function () {
+        d3.select(this).style("stroke-width", 3);
+        d3.select(".mean-text").style("opacity", 0);
+      });
+
+      meanLine.attr("stroke-dasharray", "5, 5");
+
+};
