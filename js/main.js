@@ -701,7 +701,7 @@ const text2 = svg
 
 const createDonutChart = (data) => {
   // Set up the donut chart using D3.js
-  const width = 1000,
+  const width = 700,
     height = 400;
 
   // Set the initial radius value
