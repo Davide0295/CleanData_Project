@@ -1120,7 +1120,7 @@ const createBarChart = (data) => {
     .attr("y1", y(meanValue))
     .attr("x2", width - margin.right)
     .attr("y2", y(meanValue))
-    .attr("stroke", "red")
+    .attr("stroke", "grey")
     .attr("stroke-width", 3)
     .style("z-index", 1);
 
@@ -1130,7 +1130,7 @@ const createBarChart = (data) => {
       .attr("y", y(meanValue) - 5)
       .attr("text-anchor", "start")
       .text(`mean: ${meanValue.toFixed(2)} kg/capita`)
-      .style("fill", "red")
+      .style("fill", "black")
       .attr("class", "mean-text")
       .style("opacity", 0);
 
