@@ -92,7 +92,7 @@ h3 {
 }
 
 #lineDesc {
-  width: 26%;
+  width: 25%;
   height: 500px;
   float: right;
   margin-top: 2%;
@@ -103,6 +103,7 @@ h3 {
   padding-top: 3%;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
   float: left;
+  width: 75%;
 }
 
 #plasticPerCap {
@@ -115,7 +116,7 @@ h3 {
 }
 
 #barDesc {
-  width: 28%;
+  width: 25%;
   height: 500px;
   float: left;
   margin-top: 3%;
@@ -123,7 +124,7 @@ h3 {
 
 #bar1 {
   float: right;
-  width: 70%;
+  width: 75%;
 }
 
 #bar2Desc {
@@ -137,6 +138,7 @@ h3 {
   float: left;
   width: 75%;
 }
+
 
 #donutDesc {
   width: 35%;
