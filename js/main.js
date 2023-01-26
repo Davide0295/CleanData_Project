@@ -32,6 +32,10 @@ d3.csv("./data/merged_data_population.csv", (d) => {
           values: {
             Total_gen: d3.sum(v, (x) => x.Plastic_waste_generated),
             Total_waste: d3.sum(v, (x) => x.Plastic_waste_treated),
+            Percentage_treated:
+              (d3.sum(v, (x) => x.Plastic_waste_treated) /
+                d3.sum(v, (x) => x.Plastic_waste_generated)) *
+              100,
           },
         };
       },
@@ -41,6 +45,7 @@ d3.csv("./data/merged_data_population.csv", (d) => {
       Country: k,
       Plastic_waste_generated: v.values.Total_gen,
       Plastic_waste_treated: v.values.Total_waste,
+      Perc_treated: v.values.Percentage_treated
     }));
 
   //Filter for total plastic waste generated > 150.000, explanation in Analysis report assignement
@@ -314,21 +319,21 @@ const createGroupedBarChart = (data) => {
       createGroupedBarChart(data);
     });
 
-  function compareAlphabetically(a, b) {
-    if (a.Country < b.Country) {
+  function comparePercTreated(a, b) {
+    if (a.Perc_treated > b.Perc_treated) {
       return -1;
     }
-    if (a.Country > b.Country) {
+    if (a.Perc_treated < b.Perc_treated) {
       return 1;
     }
     return 0;
   }
 
-  const alphabeticalButton = buttonContainer
+  const percTreatedButton = buttonContainer
     .append("button")
-    .text("Sort Alphabetically")
+    .text("Sort by % Treated")
     .on("click", function () {
-      data.sort(compareAlphabetically);
+      data.sort(comparePercTreated);
       // Remove the old chart and buttons
       d3.select("#container").selectAll("*").remove();
       d3.select("#bar").selectAll("*").remove();
@@ -436,6 +441,7 @@ const createGroupedBarChart = (data) => {
     .append("rect")
     .attr("width", 160)
     .attr("height", 60)
+    .attr("x", 30)
     .style("fill", "none")
     .style("stroke-width", 1)
     .style("stroke", "grey");
@@ -446,7 +452,7 @@ const createGroupedBarChart = (data) => {
     .data(subgroups)
     .enter()
     .append("rect")
-    .attr("x", border_padding)
+    .attr("x", border_padding + 30)
     .attr("y", (d, i) => border_padding + i * (size + item_padding))
     .attr("width", size)
     .attr("height", size)
@@ -458,7 +464,7 @@ const createGroupedBarChart = (data) => {
     .data(subgroups)
     .enter()
     .append("text")
-    .attr("x", border_padding + size + item_padding)
+    .attr("x", border_padding + size + item_padding + 30)
     .attr(
       "y",
       (d, i) =>
@@ -774,34 +780,6 @@ const createDonutChart = (data) => {
     .attr("dy", "0em")
     .attr("font-size", "25px")
     .text("");
-/*
-  // Get an array of unique countries
-  const countries = [...new Set(data.map((d) => d.Country))];
-
-  // Append a div container for the checkboxes
-  const checkboxContainer = d3.select("body").append("div");
-
-  // Append checkboxes for each country
-  countries.forEach((country) => {
-    checkboxContainer
-      .append("input")
-      .attr("type", "checkbox")
-      .attr("value", country)
-      .attr("id", country + "-checkbox")
-      .on("change", function () {
-        if (this.checked) {
-          updateDonut(country);
-        } else {
-          d3.selectAll("#" + country + "-donut").remove();
-        }
-      });
-
-    checkboxContainer
-      .append("label")
-      .attr("for", country + "-checkbox")
-      .text(country);
-  });
-  */
 
   // Update the donut chart with the data for the selected country
   function updateDonut(country) {
@@ -1045,19 +1023,6 @@ const createBarChart = (data) => {
       "transform",
       (d) => `translate(${x(d.Country)},${y(d.Plastic_generated_per_capita)})`
     );
-
-  /*
-  svg
-    .selectAll(".bar")
-    .data(data)
-    .enter()
-    .append("image")
-    .attr("xlink:href", "./images/garbage.png")
-    .attr("x", (d) => x(d.Country))
-    .attr("y", (d) => y(d.Plastic_generated_per_capita) - 40)
-    .attr("width", x.bandwidth())
-    .attr("height", 50);
-*/
 
   const meanValue = d3.mean(data, (d) => d.Plastic_generated_per_capita);
 
