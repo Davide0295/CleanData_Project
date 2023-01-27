@@ -930,7 +930,7 @@ const createBarChart = (data) => {
 
   const color = d3.scaleOrdinal(d3.schemeSet2);
 
-  const buttonContainer = d3.select("#scontainer").append("div").attr("class","container");
+  const buttonContainer = d3.select("#scontainer").append("div");
 
   // Sort the data by Plastic_generated_per_capita and update the chart
   function compareByGenerated(a, b) {
