@@ -265,6 +265,10 @@ button:hover {
   margin-left: 34%;
 }
 
+.container {
+  width: 700px;
+  margin-left: -50%;
+}
 
 footer {
     position: relative;

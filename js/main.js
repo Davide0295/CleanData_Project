@@ -274,7 +274,7 @@ const createGroupedBarChart = (data) => {
     d3.select(this).style("stroke", "none");
   };
 
-  const buttonContainer = d3.select("#container").append("div");
+  const buttonContainer = d3.select("#container").append("div").attr("class","container");
 
   // Sort the data by Plastic_waste_generated and update the chart
   function compareByGenerated(a, b) {
@@ -930,7 +930,7 @@ const createBarChart = (data) => {
 
   const color = d3.scaleOrdinal(d3.schemeSet2);
 
-  const buttonContainer = d3.select("#scontainer").append("div");
+  const buttonContainer = d3.select("#scontainer").append("div").attr("class","container");
 
   // Sort the data by Plastic_generated_per_capita and update the chart
   function compareByGenerated(a, b) {
