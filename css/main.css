@@ -1,4 +1,4 @@
-* {
+c* {
   font-family:'Times New Roman', Times, serif;
 }
 
@@ -371,11 +371,11 @@ html {
   color: white;
 }
 
-.container {
+.containerUs {
   padding: 0 16px;
 }
 
-.container::after, .row::after {
+.containerUs::after, .row::after {
   content: "";
   clear: both;
   display: table;
