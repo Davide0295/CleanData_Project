@@ -459,6 +459,12 @@ label {
   margin: 5px;
 }
 
+
+.container {
+  width: 100%;
+
+}
+
 #donut {
   width: 100%;
 }
